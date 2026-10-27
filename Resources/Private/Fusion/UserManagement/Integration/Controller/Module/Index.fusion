@@ -91,10 +91,10 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.UserRow
                     attributes.aria-label={props.user.displayName}
                 />
             </td>
-            <td><a href={props.editUri}>{props.user.displayName}</a></td>
-            <td>{Array.join(props.user.accountIdentifiers, ', ')}</td>
+            <td><a href={props.editUri}>{String.htmlSpecialChars(props.user.displayName)}</a></td>
+            <td>{String.htmlSpecialChars(Array.join(props.user.accountIdentifiers, ', '))}</td>
             <td>
-                {props.user.primaryEmail || '-'}
+                {props.user.primaryEmail ? String.htmlSpecialChars(props.user.primaryEmail) : '-'}
                 <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.EmailBadge @if={props.user.primaryEmail}
                                                                                            approved={props.user.emailApproved}/>
             </td>

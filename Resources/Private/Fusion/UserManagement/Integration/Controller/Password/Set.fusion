@@ -14,7 +14,7 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.PasswordController.set = Sa
                                        attributes.class="neos-user-management__form">
                     <fieldset>
                         <p class="neos-two-factor__login-label">
-                            {I18n.id(action == 'initialPassword' ? 'password.set.introInitial' : 'password.set.introReset').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').arguments([username]).translate()}
+                            {I18n.id(action == 'initialPassword' ? 'password.set.introInitial' : 'password.set.introReset').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').arguments([String.htmlSpecialChars(username)]).translate()}
                         </p>
 
                         <div class="neos-controls">

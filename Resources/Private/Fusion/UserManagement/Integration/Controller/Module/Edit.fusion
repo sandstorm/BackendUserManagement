@@ -6,7 +6,7 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.edit = San
 
     content = afx`
         <div class="neos-user-management" data-test-id="user-details">
-            <legend>{user.displayName}</legend>
+            <legend>{String.htmlSpecialChars(user.displayName)}</legend>
 
             <section class="neos-user-management__section">
                 <h2>
@@ -59,7 +59,7 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.edit = San
                         id="module.edit.emailVerificationStatus"/>
                 </h2>
                 <p>
-                    {user.primaryEmail || '-'}
+                    {user.primaryEmail ? String.htmlSpecialChars(user.primaryEmail) : '-'}
                     <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.EmailBadge @if={user.primaryEmail}
                                                                                                approved={user.emailApproved}/>
                 </p>
@@ -164,7 +164,7 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.Account
 
     renderer = afx`
         <div class="neos-user-management__account" data-test-id="account">
-            <h3>{props.account.accountIdentifier} <small>({props.account.authenticationProviderName})</small></h3>
+            <h3>{String.htmlSpecialChars(props.account.accountIdentifier)} <small>({props.account.authenticationProviderName})</small></h3>
             <p>
                 <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.lastLogin" />: {props.account.lastSuccessfulAuthentication ? Date.format(props.account.lastSuccessfulAuthentication, 'Y-m-d H:i') : '-'}
             </p>

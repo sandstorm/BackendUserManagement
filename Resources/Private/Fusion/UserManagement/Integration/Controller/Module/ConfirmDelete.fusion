@@ -12,7 +12,7 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.confirmDel
             </p>
             <ul class="neos-user-management__delete-list">
                 <Neos.Fusion:Loop items={users} itemName="user">
-                    <li>{user.displayName} ({Array.join(user.accountIdentifiers, ', ')})</li>
+                    <li>{String.htmlSpecialChars(user.displayName)} ({String.htmlSpecialChars(Array.join(user.accountIdentifiers, ', '))})</li>
                 </Neos.Fusion:Loop>
             </ul>
             <Neos.Fusion.Form:Form form.target.action="delete"
