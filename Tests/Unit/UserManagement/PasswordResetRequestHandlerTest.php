@@ -154,6 +154,21 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
     /**
      * @test
      */
+    public function unvalidatedEmailIsLoggedWhenValidationIsRequired(): void
+    {
+        $securityLogger = $this->createMock(LoggerInterface::class);
+        $securityLogger->expects(self::exactly(2))->method('warning')
+            ->with(self::stringContains('not validated'), ['accountIdentifier' => 'unvalidated']);
+        $this->inject($this->handler, 'securityLogger', $securityLogger);
+
+        // by username and by email - the latter must not just be "not found"
+        $this->handler->handle('unvalidated', '127.0.0.1');
+        $this->handler->handle('unvalidated@example.com', '127.0.0.1');
+    }
+
+    /**
+     * @test
+     */
     public function unvalidatedEmailIsUsedWhenValidationIsNotRequired(): void
     {
         $this->inject($this->handler, 'requireValidatedEmail', false);

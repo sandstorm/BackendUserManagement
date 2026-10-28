@@ -24,6 +24,7 @@ use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\SimpleUserF
 use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserCommandService;
 use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserMailer;
 use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserManagementException;
+use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto\SimpleUser;
 use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
 
 /**
@@ -77,6 +78,9 @@ class ModuleController extends AbstractModuleController
     #[Flow\Inject]
     protected Translator $translator;
 
+    #[Flow\InjectConfiguration(path: 'userManagement.requireValidatedEmail')]
+    protected bool $requireValidatedEmail = true;
+
     #[Flow\InjectConfiguration(path: 'userManagement.usernameIsEmail')]
     protected bool $usernameIsEmail = false;
 
@@ -111,6 +115,7 @@ class ModuleController extends AbstractModuleController
             'currentUserId' => $this->currentUserId(),
             'usernameIsEmail' => $this->usernameIsEmail,
             'mailConfigurationWarning' => $this->mailConfigurationWarning(),
+            'unvalidatedEmailWarning' => $this->unvalidatedEmailWarning(),
             'flashMessages' => $this->flushFlashMessages(),
         ]);
     }
@@ -560,6 +565,19 @@ class ModuleController extends AbstractModuleController
             return $this->translate('warning.mailerDsnMissing');
         }
         return null;
+    }
+
+    /**
+     * Forgot password silently sends no mail to these users (the answer must not reveal that the account exists),
+     * so the admins are told here.
+     */
+    private function unvalidatedEmailWarning(): ?string
+    {
+        if (!$this->requireValidatedEmail) {
+            return null;
+        }
+        $count = count(array_filter($this->simpleUserFinder->findAll(), fn (SimpleUser $user) => !$user->emailApproved));
+        return $count > 0 ? $this->translate('warning.unvalidatedEmails', [$count]) : null;
     }
 
     /**

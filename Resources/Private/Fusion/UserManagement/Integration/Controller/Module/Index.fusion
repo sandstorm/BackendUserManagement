@@ -7,6 +7,9 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.index = Sa
             <div @if={mailConfigurationWarning} class="neos-user-management__notice neos-user-management__notice--warning" role="alert">
                 {mailConfigurationWarning}
             </div>
+            <div @if={unvalidatedEmailWarning} class="neos-user-management__notice neos-user-management__notice--warning" role="alert" data-test-id="unvalidated-email-warning">
+                {unvalidatedEmailWarning}
+            </div>
 
             <div class="neos-user-management__toolbar">
                 <Neos.Fusion.Form:Form form.target.action="index" form.data.searchTerm={searchTerm} form.data.authenticationProviderName={authenticationProviderName} attributes.class="neos-user-management__search">

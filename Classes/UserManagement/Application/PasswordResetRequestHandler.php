@@ -93,7 +93,8 @@ class PasswordResetRequestHandler
         $accountsById = [];
         foreach ([
             ...$this->simpleUserFinder->findActiveAccountsByAccountIdentifier($input),
-            ...$this->simpleUserFinder->findActiveAccountsByPrimaryEmail($input, $this->requireValidatedEmail),
+            // unvalidated ones too - so they are logged below instead of silently not found
+            ...$this->simpleUserFinder->findActiveAccountsByPrimaryEmail($input, false),
         ] as $account) {
             $accountsById[(string)$this->persistenceManager->getIdentifierByObject($account)] = $account;
         }
@@ -103,6 +104,12 @@ class PasswordResetRequestHandler
             $user = $this->simpleUserFinder->findUserOfAccount($account);
             $primaryEmail = $user !== null ? $this->simpleUserFinder->getPrimaryEmail($user) : null;
             if ($primaryEmail === null || ($this->requireValidatedEmail && !$primaryEmail->isApproved())) {
+                // the user still gets the generic answer - only admins may learn why no mail was sent
+                $this->securityLogger->warning(
+                    'Sandstorm/NeosTwoFactorAuthentication: forgot password requested, but no mail sent - '
+                    . ($primaryEmail === null ? 'the user has no email address.' : 'the email address is not validated (userManagement.requireValidatedEmail).'),
+                    ['accountIdentifier' => $account->getAccountIdentifier()]
+                );
                 continue;
             }
             $byRecipient[SimpleUserFinder::normalizeEmail($primaryEmail->getIdentifier())][] = $account;

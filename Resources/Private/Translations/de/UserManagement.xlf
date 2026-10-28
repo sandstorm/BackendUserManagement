@@ -154,6 +154,10 @@
         <source>No sender address is configured (Sandstorm.NeosTwoFactorAuthentication.userManagement.mail.from.address) - no mails can be sent.</source>
         <target>Es ist keine Absendeadresse konfiguriert (Sandstorm.NeosTwoFactorAuthentication.userManagement.mail.from.address) - es können keine Mails gesendet werden.</target>
       </trans-unit>
+      <trans-unit id="warning.unvalidatedEmails" xml:space="preserve">
+        <source>{0} user(s) have no validated email address and get no mail from "forgot password". Send them a confirmation link or mark the address as validated in the edit view.</source>
+        <target>{0} Benutzer*innen haben keine validierte E-Mail-Adresse und erhalten bei "Passwort vergessen" keine Mail. Senden Sie ihnen in der Bearbeitungsansicht einen Bestätigungslink oder markieren Sie die Adresse als validiert.</target>
+      </trans-unit>
       <trans-unit id="warning.mailerDsnMissing" xml:space="preserve">
         <source>No mail transport is configured (Neos.SymfonyMailer.mailer.dsn) - no mails will be delivered.</source>
         <target>Es ist kein Mail-Transport konfiguriert (Neos.SymfonyMailer.mailer.dsn) - es werden keine Mails zugestellt.</target>
