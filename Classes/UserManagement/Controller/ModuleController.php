@@ -38,8 +38,9 @@ class ModuleController extends AbstractModuleController
      * Read-only actions. All others change state and are POST only: Flow skips the CSRF check for GET requests
      * ({@see \Neos\Flow\Security\RequestPattern\CsrfProtection::matchRequest()}), and module actions are reachable by
      * GET - via the last URI segment ({@see \Neos\Neos\Routing\BackendModuleRoutePartHandler}) or `moduleArguments[@action]`.
+     * @var string[]
      */
-    private const SAFE_ACTIONS = ['index', 'new', 'edit', 'confirmDelete'];
+    private const array SAFE_ACTIONS = ['index', 'new', 'edit', 'confirmDelete'];
 
     /**
      * @var string
@@ -86,7 +87,7 @@ class ModuleController extends AbstractModuleController
     #[Flow\InjectConfiguration(path: 'userManagement.mail.from.address')]
     protected ?string $mailFromAddress = null;
 
-    #[Flow\InjectConfiguration(package: 'Neos.SymfonyMailer', path: 'mailer.dsn')]
+    #[Flow\InjectConfiguration(path: 'mailer.dsn', package: 'Neos.SymfonyMailer')]
     protected ?string $mailerDsn = null;
 
     protected function initializeAction(): void
