@@ -25,6 +25,11 @@
     background: rgba(255, 135, 0, .2);
 }
 
+.neos-user-management__notice--info {
+    border-left-color: #00adee;
+    background: rgba(0, 173, 238, .2);
+}
+
 .neos-user-management__badge {
     display: inline-block;
     margin-left: 6px;

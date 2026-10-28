@@ -105,12 +105,20 @@ class ModuleController extends AbstractModuleController
         }
     }
 
-    public function indexAction(string $searchTerm = '', string $authenticationProviderName = ''): void
+    /**
+     * @param bool $unvalidatedEmailOnly only users that get no mail from "forgot password" (linked from the notice)
+     */
+    public function indexAction(string $searchTerm = '', string $authenticationProviderName = '', bool $unvalidatedEmailOnly = false): void
     {
+        $users = $this->simpleUserFinder->findAll($searchTerm, $authenticationProviderName);
+        if ($unvalidatedEmailOnly) {
+            $users = array_values(array_filter($users, fn (SimpleUser $user) => !$user->emailApproved));
+        }
         $this->view->assignMultiple([
-            'users' => $this->simpleUserFinder->findAll($searchTerm, $authenticationProviderName),
+            'users' => $users,
             'searchTerm' => $searchTerm,
             'authenticationProviderName' => $authenticationProviderName,
+            'unvalidatedEmailOnly' => $unvalidatedEmailOnly,
             'providers' => $this->simpleUserFinder->getManagedProviders(),
             'currentUserId' => $this->currentUserId(),
             'usernameIsEmail' => $this->usernameIsEmail,

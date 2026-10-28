@@ -154,6 +154,18 @@
         <source>No sender address is configured (Sandstorm.NeosTwoFactorAuthentication.userManagement.mail.from.address) - no mails can be sent.</source>
         <target>Es ist keine Absendeadresse konfiguriert (Sandstorm.NeosTwoFactorAuthentication.userManagement.mail.from.address) - es können keine Mails gesendet werden.</target>
       </trans-unit>
+      <trans-unit id="module.index.showUnvalidatedEmailUsers" xml:space="preserve">
+        <source>Show these users</source>
+        <target>Diese Benutzer*innen anzeigen</target>
+      </trans-unit>
+      <trans-unit id="module.index.unvalidatedEmailFilterActive" xml:space="preserve">
+        <source>Only users without a validated email address are shown.</source>
+        <target>Es werden nur Benutzer*innen ohne validierte E-Mail-Adresse angezeigt.</target>
+      </trans-unit>
+      <trans-unit id="module.index.showAllUsers" xml:space="preserve">
+        <source>Show all users</source>
+        <target>Alle Benutzer*innen anzeigen</target>
+      </trans-unit>
       <trans-unit id="warning.unvalidatedEmails" xml:space="preserve">
         <source>{0} user(s) have no validated email address and get no mail from "forgot password". Send them a confirmation link or mark the address as validated in the edit view.</source>
         <target>{0} Benutzer*innen haben keine validierte E-Mail-Adresse und erhalten bei "Passwort vergessen" keine Mail. Senden Sie ihnen in der Bearbeitungsansicht einen Bestätigungslink oder markieren Sie die Adresse als validiert.</target>

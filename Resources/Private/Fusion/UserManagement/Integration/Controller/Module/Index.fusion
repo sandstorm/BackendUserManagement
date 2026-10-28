@@ -2,17 +2,34 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.index = Sa
     @context.newUri = Neos.Fusion:UriBuilder {
         action = 'new'
     }
+    @context.unvalidatedEmailOnlyUri = Neos.Fusion:UriBuilder {
+        action = 'index'
+        arguments.unvalidatedEmailOnly = true
+    }
+    @context.allUsersUri = Neos.Fusion:UriBuilder {
+        action = 'index'
+    }
     content = afx`
         <div class="neos-user-management">
             <div @if={mailConfigurationWarning} class="neos-user-management__notice neos-user-management__notice--warning" role="alert">
                 {mailConfigurationWarning}
             </div>
             <div @if={unvalidatedEmailWarning} class="neos-user-management__notice neos-user-management__notice--warning" role="alert" data-test-id="unvalidated-email-warning">
-                {unvalidatedEmailWarning}
+                {unvalidatedEmailWarning}{' '}
+                <a @if={!unvalidatedEmailOnly} href={unvalidatedEmailOnlyUri} data-test-id="show-unvalidated-email-users">
+                    <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.showUnvalidatedEmailUsers" />
+                </a>
+            </div>
+            <div @if={unvalidatedEmailOnly} class="neos-user-management__notice neos-user-management__notice--info" role="status" data-test-id="unvalidated-email-filter">
+                <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.unvalidatedEmailFilterActive" />{' '}
+                <a href={allUsersUri}>
+                    <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.showAllUsers" />
+                </a>
             </div>
 
             <div class="neos-user-management__toolbar">
                 <Neos.Fusion.Form:Form form.target.action="index" form.data.searchTerm={searchTerm} form.data.authenticationProviderName={authenticationProviderName} attributes.class="neos-user-management__search">
+                    <Neos.Fusion.Form:Hidden field.name="unvalidatedEmailOnly" field.value="1" @if={unvalidatedEmailOnly} />
                     <Neos.Fusion.Form:Input
                         field.name="searchTerm"
                         attributes.placeholder={I18n.id('module.index.search').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
