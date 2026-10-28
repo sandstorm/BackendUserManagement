@@ -154,7 +154,11 @@ Links are validated on GET but only used on POST (mail scanners prefetch links),
 and are invalidated when a newer link of the same kind is sent or the email changed. Setting a password logs out all
 sessions of the user and never logs in automatically, so 2FA stays in force. Forgot-password requests are throttled
 per username/email and per IP ([symfony/rate-limiter](https://symfony.com/doc/current/rate_limiter.html), sliding
-window, with [symfony/lock](https://symfony.com/doc/current/lock.html)).
+window, with [symfony/lock](https://symfony.com/doc/current/lock.html)). Forgot-password mails are sent via a
+[Flowpack.JobQueue.Common](https://github.com/Flowpack/jobqueue-common) queue, so the response time does not reveal
+whether an account exists. By default this is the async `FakeQueue` - a background `./flow` process per mail, no worker
+needed (requires `exec()` and `Neos.Flow.core.phpBinaryPathAndFilename` pointing to the PHP CLI). To use a real queue,
+override `Flowpack.JobQueue.Common.queues.'Sandstorm.NeosTwoFactorAuthentication:UserManagementMail'`.
 
 ### Enabling it
 

@@ -70,7 +70,9 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
 
         $mailer = $this->createMock(UserMailer::class);
         $mailer->method('sendPasswordLinks')->willReturnCallback(
-            function (string $recipient, ?User $user, UserActionType $action, array $links) {
+            function (string $recipient, ?User $user, UserActionType $action, array $links, \DateTimeImmutable $expiresAt, bool $async = false) {
+                // via the queue, so the response time does not reveal whether an account exists
+                $this->assertTrue($async);
                 $this->sentMails[] = ['recipient' => $recipient, 'links' => $links];
             }
         );

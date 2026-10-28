@@ -9,12 +9,14 @@ use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\Security\Account;
 use Psr\Log\LoggerInterface;
 use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Throwable;
 
 /**
  * "Forgot password": the user enters a username OR an email address.
  *
  * The caller ALWAYS shows the same generic response - this handler never reveals whether an account exists,
- * and swallows (but logs) mail errors for the same reason.
+ * and swallows (but logs) mail errors for the same reason. The mail is sent via a queue, so the response time
+ * does not reveal it either.
  *
  * Resolution:
  *   - accounts whose identifier equals the input (any managed provider), mailed to their user's primary email
@@ -122,10 +124,12 @@ class PasswordResetRequestHandler
                 $user,
                 UserActionType::RESET_PASSWORD,
                 $links,
-                (new \DateTimeImmutable())->add($this->tokenService->getLifetime(UserActionType::RESET_PASSWORD))
+                (new \DateTimeImmutable())->add($this->tokenService->getLifetime(UserActionType::RESET_PASSWORD)),
+                true
             );
-        } catch (\Throwable $e) {
-            $this->securityLogger->error('Sandstorm/NeosTwoFactorAuthentication: could not send password reset mail: ' . $e->getMessage());
+        } catch (Throwable $exception) {
+            // rendering and queueing errors only - transport errors are logged by the SendMailJob
+            $this->securityLogger->error('Sandstorm/NeosTwoFactorAuthentication: could not render password reset mail: ' . $exception->getMessage());
         }
     }
 }

@@ -41,6 +41,19 @@ Sandstorm:
           address: ~
           name: 'Neos'
 
+Flowpack:
+  JobQueue:
+    Common:
+      queues:
+        # Forgot-password mails are sent via this queue, so the response time does not reveal whether an account
+        # exists. The async FakeQueue runs each job in a background `./flow` process - no worker needed. With a real
+        # queue (e.g. Flowpack.JobQueue.Redis), override className and run `./flow job:work` for it.
+        # Never set `async: false` - the request would then wait for the mail again.
+        'Sandstorm.NeosTwoFactorAuthentication:UserManagementMail':
+          className: 'Flowpack\JobQueue\Common\Queue\FakeQueue'
+          options:
+            async: true
+
 Neos:
   Neos:
     userInterface:

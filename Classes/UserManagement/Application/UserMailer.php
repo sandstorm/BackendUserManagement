@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application;
 
+use DateTimeImmutable;
+use Flowpack\JobQueue\Common\Job\JobManager;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Http\BaseUriProvider;
 use Neos\Flow\I18n\Locale;
@@ -21,7 +23,9 @@ use Symfony\Component\Mime\Email;
  * Sends the user management mails via neos/symfonymailer. Bodies (HTML + plain text) are rendered from
  * Fusion (Resources/Private/Fusion/UserManagement/Mail) in the recipient's backend interface language.
  *
- * Throws on any transport or configuration error - callers decide whether to show or swallow it.
+ * Throws on any transport or configuration error - callers decide whether to show or swallow it. Mails sent with
+ * $async are only rendered right away; they are sent by a {@see SendMailJob} from the {@see self::QUEUE_NAME} queue,
+ * which logs transport errors.
  */
 #[Flow\Scope('singleton')]
 class UserMailer
@@ -29,8 +33,16 @@ class UserMailer
     /**
      * Paths of the public routes, see Configuration/Routes.yaml
      */
-    public const SET_PASSWORD_PATH = '/neos/password/set/';
-    public const CONFIRM_EMAIL_PATH = '/neos/email/confirm/';
+    public const string SET_PASSWORD_PATH = '/neos/password/set/';
+    public const string CONFIRM_EMAIL_PATH = '/neos/email/confirm/';
+
+    /**
+     * Flowpack.JobQueue.Common queue, see Configuration/Settings.UserManagement.yaml
+     */
+    public const string QUEUE_NAME = 'Sandstorm.NeosTwoFactorAuthentication:UserManagementMail';
+
+    #[Flow\Inject]
+    protected JobManager $jobManager;
 
     #[Flow\Inject]
     protected MailerService $mailerService;
@@ -45,29 +57,47 @@ class UserMailer
     #[Flow\InjectConfiguration(path: 'userManagement.mail')]
     protected array $mailSettings = [];
 
-    #[Flow\InjectConfiguration(package: 'Neos.Neos', path: 'userInterface.defaultLanguage')]
+    #[Flow\InjectConfiguration(path: 'userInterface.defaultLanguage', package: 'Neos.Neos')]
     protected ?string $defaultLanguage = null;
 
     /**
      * One mail with one link per account (several accounts may share the same email address).
      *
      * @param list<array{username: string, token: string}> $links
+     * @param bool $async send via the queue - so the response time does not tell whether an account exists
      */
-    public function sendPasswordLinks(string $recipient, ?User $user, UserActionType $action, array $links, \DateTimeImmutable $expiresAt): void
-    {
-        $this->send($recipient, $user, 'passwordLinks', [
-            'action' => $action->value,
-            'links' => array_map(fn (array $link) => [
-                'username' => $link['username'],
-                'uri' => $this->buildUri(self::SET_PASSWORD_PATH . $link['token']),
-            ], $links),
-            'expiresAt' => $expiresAt,
-            'name' => $user?->getName()->getFullName() ?? '',
-        ]);
+    public function sendPasswordLinks(
+        string $recipient,
+        ?User $user,
+        UserActionType $action,
+        array $links,
+        DateTimeImmutable $expiresAt,
+        bool $async = false,
+    ): void {
+        $this->send(
+            $recipient,
+            $user,
+            'passwordLinks',
+            [
+                'action' => $action->value,
+                'links' => array_map(fn(array $link)
+                    => [
+                    'username' => $link['username'],
+                    'uri' => $this->buildUri(self::SET_PASSWORD_PATH . $link['token']),
+                ], $links),
+                'expiresAt' => $expiresAt,
+                'name' => $user?->getName()->getFullName() ?? '',
+            ],
+            $async,
+        );
     }
 
-    public function sendEmailVerification(string $recipient, User $user, string $token, \DateTimeImmutable $expiresAt): void
-    {
+    public function sendEmailVerification(
+        string $recipient,
+        User $user,
+        string $token,
+        DateTimeImmutable $expiresAt,
+    ): void {
         $this->send($recipient, $user, 'emailVerification', [
             'uri' => $this->buildUri(self::CONFIRM_EMAIL_PATH . $token),
             'expiresAt' => $expiresAt,
@@ -81,7 +111,10 @@ class UserMailer
     public function sendUsernameChanged(string $recipient, User $user, array $usernameChanges): void
     {
         $this->send($recipient, $user, 'usernameChanged', [
-            'oldUsernames' => implode(', ', array_map(fn (UsernameChange $change) => $change->oldUsername, $usernameChanges)),
+            'oldUsernames' => implode(
+                ', ',
+                array_map(fn(UsernameChange $change) => $change->oldUsername, $usernameChanges),
+            ),
             'newUsername' => $usernameChanges[0]->newUsername,
             'name' => $user->getName()->getFullName(),
         ]);
@@ -97,11 +130,18 @@ class UserMailer
     /**
      * @param array<string, mixed> $variables
      */
-    private function send(string $recipient, ?User $user, string $mailName, array $variables): void
-    {
+    private function send(
+        string $recipient,
+        ?User $user,
+        string $mailName,
+        array $variables,
+        bool $async = false,
+    ): void {
         $fromAddress = $this->mailSettings['from']['address'] ?? null;
         if ($fromAddress === null || $fromAddress === '') {
-            throw new \RuntimeException('Sandstorm.NeosTwoFactorAuthentication.userManagement.mail.from.address is not configured.', 1760000001);
+            throw new \RuntimeException(
+                'Sandstorm.NeosTwoFactorAuthentication.userManagement.mail.from.address is not configured.', 1760000001,
+            );
         }
 
         $locale = $user?->getPreferences()->getInterfaceLanguage() ?? $this->defaultLanguage ?? 'en';
@@ -116,6 +156,10 @@ class UserMailer
             ->html($html)
             ->text($text);
 
+        if ($async) {
+            $this->jobManager->queue(self::QUEUE_NAME, new SendMailJob($email));
+            return;
+        }
         $this->mailerService->getMailer()->send($email);
     }
 
@@ -131,10 +175,12 @@ class UserMailer
 
             $view = new FusionView();
             $view->setFusionPathPatterns(['resource://Sandstorm.NeosTwoFactorAuthentication/Private/Fusion']);
-            $view->setFusionPath('Sandstorm/NeosTwoFactorAuthentication/UserManagement/Mail/' . str_replace('.', '/', $fusionPath));
+            $view->setFusionPath(
+                'Sandstorm/NeosTwoFactorAuthentication/UserManagement/Mail/' . str_replace('.', '/', $fusionPath),
+            );
             $view->assignMultiple($variables);
             $output = $view->render();
-            return $output instanceof ResponseInterface ? (string)$output->getBody() : (string)$output;
+            return $output instanceof ResponseInterface ? (string) $output->getBody() : (string) $output;
         } finally {
             $i18nConfiguration->setCurrentLocale($previousLocale);
         }
@@ -142,6 +188,6 @@ class UserMailer
 
     private function buildUri(string $path): string
     {
-        return rtrim((string)$this->baseUriProvider->getConfiguredBaseUriOrFallbackToCurrentRequest(), '/') . $path;
+        return rtrim((string) $this->baseUriProvider->getConfiguredBaseUriOrFallbackToCurrentRequest(), '/') . $path;
     }
 }
