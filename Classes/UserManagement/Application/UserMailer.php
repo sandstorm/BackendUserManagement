@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application;
+namespace Sandstorm\BackendUserManagement\UserManagement\Application;
 
 use DateTimeImmutable;
 use Flowpack\JobQueue\Common\Job\JobManager;
@@ -14,8 +14,8 @@ use Neos\Fusion\View\FusionView;
 use Neos\Neos\Domain\Model\User;
 use Neos\SymfonyMailer\Service\MailerService;
 use Psr\Http\Message\ResponseInterface;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto\UsernameChange;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\UsernameChange;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -39,7 +39,7 @@ class UserMailer
     /**
      * Flowpack.JobQueue.Common queue, see Configuration/Settings.UserManagement.yaml
      */
-    public const string QUEUE_NAME = 'Sandstorm.NeosTwoFactorAuthentication:UserManagementMail';
+    public const string QUEUE_NAME = 'Sandstorm.BackendUserManagement:UserManagementMail';
 
     #[Flow\Inject]
     protected JobManager $jobManager;
@@ -140,7 +140,7 @@ class UserMailer
         $fromAddress = $this->mailSettings['from']['address'] ?? null;
         if ($fromAddress === null || $fromAddress === '') {
             throw new \RuntimeException(
-                'Sandstorm.NeosTwoFactorAuthentication.userManagement.mail.from.address is not configured.', 1760000001,
+                'Sandstorm.BackendUserManagement.userManagement.mail.from.address is not configured.', 1760000001,
             );
         }
 
@@ -174,9 +174,9 @@ class UserMailer
             $i18nConfiguration->setCurrentLocale(new Locale($localeIdentifier));
 
             $view = new FusionView();
-            $view->setFusionPathPatterns(['resource://Sandstorm.NeosTwoFactorAuthentication/Private/Fusion']);
+            $view->setFusionPathPatterns(['resource://Sandstorm.BackendUserManagement/Private/Fusion']);
             $view->setFusionPath(
-                'Sandstorm/NeosTwoFactorAuthentication/UserManagement/Mail/' . str_replace('.', '/', $fusionPath),
+                'Sandstorm/BackendUserManagement/UserManagement/Mail/' . str_replace('.', '/', $fusionPath),
             );
             $view->assignMultiple($variables);
             $output = $view->render();

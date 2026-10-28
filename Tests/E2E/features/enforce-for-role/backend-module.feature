@@ -2,7 +2,7 @@
 Feature: Backend module with 2FA enforced for administrators only
 
   # Requires FLOW_CONTEXT=Production/E2E-SUT/EnforceForRole
-  # Config: enforce2FAForRoles: ['Neos.Neos:Administrator', 'Neos.Neos:SecondFactorUser']
+  # Config: secondFactor.enforceForRoles: ['Neos.Neos:Administrator', 'Neos.Neos:SecondFactorUser']
 
   Background:
     Given A user with username "admin", password "password" and role "Neos.Neos:Administrator" with enrolled 2FA device with name "Admin Initial Device" exists

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
-  <file original="" product-name="Sandstorm.NeosTwoFactorAuthentication" source-language="en" datatype="plaintext" target-language="de">
+  <file original="" product-name="Sandstorm.BackendUserManagement" source-language="en" datatype="plaintext" target-language="de">
     <body>
       <trans-unit id="module.label" xml:space="preserve">
         <source>User Management</source>
@@ -151,8 +151,8 @@
         <target>Sie dürfen diese Person nicht bearbeiten, da sie Rollen hat, die Sie nicht haben.</target>
       </trans-unit>
       <trans-unit id="warning.mailFromMissing" xml:space="preserve">
-        <source>No sender address is configured (Sandstorm.NeosTwoFactorAuthentication.userManagement.mail.from.address) - no mails can be sent.</source>
-        <target>Es ist keine Absendeadresse konfiguriert (Sandstorm.NeosTwoFactorAuthentication.userManagement.mail.from.address) - es können keine Mails gesendet werden.</target>
+        <source>No sender address is configured (Sandstorm.BackendUserManagement.userManagement.mail.from.address) - no mails can be sent.</source>
+        <target>Es ist keine Absendeadresse konfiguriert (Sandstorm.BackendUserManagement.userManagement.mail.from.address) - es können keine Mails gesendet werden.</target>
       </trans-unit>
       <trans-unit id="module.index.showUnvalidatedEmailUsers" xml:space="preserve">
         <source>Show these users</source>

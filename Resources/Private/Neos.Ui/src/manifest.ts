@@ -1,7 +1,7 @@
 import manifest from '@neos-project/neos-ui-extensibility';
 import reloadOnAuthTimeout from './reloadOnAuthTimeoutSaga';
 
-manifest('Sandstorm.NeosTwoFactorAuthentication:ReloadOnAuthTimeout', {}, (globalRegistry: any) => {
+manifest('Sandstorm.BackendUserManagement:ReloadOnAuthTimeout', {}, (globalRegistry: any) => {
     const sagasRegistry = globalRegistry.get('sagas');
 
     if (!sagasRegistry) {
@@ -9,7 +9,7 @@ manifest('Sandstorm.NeosTwoFactorAuthentication:ReloadOnAuthTimeout', {}, (globa
         return;
     }
 
-    sagasRegistry.set('Sandstorm.NeosTwoFactorAuthentication/reloadOnAuthTimeout', {
+    sagasRegistry.set('Sandstorm.BackendUserManagement/reloadOnAuthTimeout', {
         saga: reloadOnAuthTimeout,
     });
 });

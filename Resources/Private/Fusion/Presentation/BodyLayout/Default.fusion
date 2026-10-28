@@ -1,4 +1,4 @@
-prototype(Sandstorm.NeosTwoFactorAuthentication:BodyLayout.Default) < prototype(Neos.Fusion:Component) {
+prototype(Sandstorm.BackendUserManagement:BodyLayout.Default) < prototype(Neos.Fusion:Component) {
     content = ''
     teaserTitle = ''
     teaserText = ''
@@ -13,7 +13,7 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:BodyLayout.Default) < prototype(
 
     renderer = afx`
         <main>
-            <Sandstorm.NeosTwoFactorAuthentication:Component.FlashMessages flashMessages={props.flashMessages}/>
+            <Sandstorm.BackendUserManagement:Component.FlashMessages flashMessages={props.flashMessages}/>
 
             {props.headerSection}
 

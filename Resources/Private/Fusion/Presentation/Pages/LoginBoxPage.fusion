@@ -1,6 +1,6 @@
 # The Neos login box layout (logo, "Login to <site>", background image, footer) with a custom body.
 # Shared by the 2FA setup screens and the user management screens (forgot / set password, confirm email).
-prototype(Sandstorm.NeosTwoFactorAuthentication:Page.LoginBoxPage) < prototype(Neos.Fusion:Component) {
+prototype(Sandstorm.BackendUserManagement:Page.LoginBoxPage) < prototype(Neos.Fusion:Component) {
     site = null
     styles = ${[]}
     scripts = ${[]}
@@ -84,10 +84,10 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:Page.LoginBoxPage) < prototype(N
                                     {I18n.id('login.index.title').value('Login to').package('Neos.Neos').source('Main')} <strong>{props.site.name}</strong>
                                 </h1>
 
-                                <p @if.set={props.notice} class="neos-two-factor__enforced-notice" role="note">{props.notice}</p>
+                                <p @if.set={props.notice} class="neos-backend-user-management__notice" role="note">{props.notice}</p>
 
-                                <div class="neos-login-body neos neos-two-factor__login">
-                                    <Sandstorm.NeosTwoFactorAuthentication:Component.LoginFlashMessages flashMessages={props.flashMessages} />
+                                <div class="neos-login-body neos neos-backend-user-management__login">
+                                    <Sandstorm.BackendUserManagement:Component.LoginFlashMessages flashMessages={props.flashMessages} />
                                     {props.body}
                                     {props.footerAction}
                                 </div>

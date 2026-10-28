@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application;
+namespace Sandstorm\BackendUserManagement\UserManagement\Application;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\Security\Account;
 use Psr\Log\LoggerInterface;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 use Throwable;
 
 /**
@@ -74,7 +74,7 @@ class PasswordResetRequestHandler
             $this->throttleSettings['perIdentifier']['window']
         );
         if (!$allowed) {
-            $this->securityLogger->notice('Sandstorm/NeosTwoFactorAuthentication: forgot password request throttled.', ['clientIp' => $clientIp]);
+            $this->securityLogger->notice('Sandstorm/BackendUserManagement: forgot password request throttled.', ['clientIp' => $clientIp]);
             return false;
         }
 
@@ -106,7 +106,7 @@ class PasswordResetRequestHandler
             if ($primaryEmail === null || ($this->requireValidatedEmail && !$primaryEmail->isApproved())) {
                 // the user still gets the generic answer - only admins may learn why no mail was sent
                 $this->securityLogger->warning(
-                    'Sandstorm/NeosTwoFactorAuthentication: forgot password requested, but no mail sent - '
+                    'Sandstorm/BackendUserManagement: forgot password requested, but no mail sent - '
                     . ($primaryEmail === null ? 'the user has no email address.' : 'the email address is not validated (userManagement.requireValidatedEmail).'),
                     ['accountIdentifier' => $account->getAccountIdentifier()]
                 );
@@ -142,7 +142,7 @@ class PasswordResetRequestHandler
             );
         } catch (Throwable $exception) {
             // rendering and queueing errors only - transport errors are logged by the SendMailJob
-            $this->securityLogger->error('Sandstorm/NeosTwoFactorAuthentication: could not render password reset mail: ' . $exception->getMessage());
+            $this->securityLogger->error('Sandstorm/BackendUserManagement: could not render password reset mail: ' . $exception->getMessage());
         }
     }
 }

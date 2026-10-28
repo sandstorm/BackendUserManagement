@@ -1,5 +1,5 @@
 {
-  "name": "@sandstorm/neos-two-factor-authentication-neos-ui",
+  "name": "@sandstorm/backend-user-management-neos-ui",
   "private": true,
   "version": "1.0.0",
   "scripts": {

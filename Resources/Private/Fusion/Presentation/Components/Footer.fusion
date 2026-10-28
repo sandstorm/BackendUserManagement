@@ -1,4 +1,4 @@
-prototype(Sandstorm.NeosTwoFactorAuthentication:Component.Footer) < prototype(Neos.Fusion:Component) {
+prototype(Sandstorm.BackendUserManagement:Component.Footer) < prototype(Neos.Fusion:Component) {
     primaryAction = ''
     title = ''
 

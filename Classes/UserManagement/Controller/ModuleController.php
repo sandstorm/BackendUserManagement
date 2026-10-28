@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Controller;
+namespace Sandstorm\BackendUserManagement\UserManagement\Controller;
 
 use Neos\Error\Messages\Message;
 use Neos\Flow\Annotations as Flow;
@@ -20,12 +20,12 @@ use Neos\Neos\Domain\Model\User;
 use Neos\Neos\Domain\Service\UserService;
 use Neos\Neos\Service\ImpersonateService;
 use Neos\Neos\Validation\Validator\PasswordValidator;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\SimpleUserFinder;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserCommandService;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserMailer;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserManagementException;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto\SimpleUser;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Sandstorm\BackendUserManagement\UserManagement\Application\SimpleUserFinder;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserCommandService;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserMailer;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserManagementException;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\SimpleUser;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 
 /**
  * Backend module replacing the core user module (administration/users).
@@ -543,7 +543,7 @@ class ModuleController extends AbstractModuleController
                 $roles[$roleIdentifier] = $this->policyService->getRole($roleIdentifier);
             }
         }
-        return $this->privilegeManager->isPrivilegeTargetGrantedForRoles($roles, 'Sandstorm.NeosTwoFactorAuthentication:Backend.Module.Administration.UserManagement');
+        return $this->privilegeManager->isPrivilegeTargetGrantedForRoles($roles, 'Sandstorm.BackendUserManagement:Backend.Module.Administration.UserManagement');
     }
 
     private function validatePassword(string $password, string $passwordConfirmation): ?string
@@ -609,6 +609,6 @@ class ModuleController extends AbstractModuleController
      */
     private function translate(string $id, array $arguments = []): string
     {
-        return (string)$this->translator->translateById($id, $arguments, null, null, 'UserManagement', 'Sandstorm.NeosTwoFactorAuthentication');
+        return (string)$this->translator->translateById($id, $arguments, null, null, 'UserManagement', 'Sandstorm.BackendUserManagement');
     }
 }

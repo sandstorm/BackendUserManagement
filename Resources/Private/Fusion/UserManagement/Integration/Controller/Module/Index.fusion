@@ -1,4 +1,4 @@
-Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.index = Sandstorm.NeosTwoFactorAuthentication:UserManagement.Page.ModulePage {
+Sandstorm.BackendUserManagement.UserManagement.ModuleController.index = Sandstorm.BackendUserManagement:UserManagement.Page.ModulePage {
     @context.newUri = Neos.Fusion:UriBuilder {
         action = 'new'
     }
@@ -17,13 +17,13 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.index = Sa
             <div @if={unvalidatedEmailWarning} class="neos-user-management__notice neos-user-management__notice--warning" role="alert" data-test-id="unvalidated-email-warning">
                 {unvalidatedEmailWarning}{' '}
                 <a @if={!unvalidatedEmailOnly} href={unvalidatedEmailOnlyUri} data-test-id="show-unvalidated-email-users">
-                    <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.showUnvalidatedEmailUsers" />
+                    <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.index.showUnvalidatedEmailUsers" />
                 </a>
             </div>
             <div @if={unvalidatedEmailOnly} class="neos-user-management__notice neos-user-management__notice--info" role="status" data-test-id="unvalidated-email-filter">
-                <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.unvalidatedEmailFilterActive" />{' '}
+                <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.index.unvalidatedEmailFilterActive" />{' '}
                 <a href={allUsersUri}>
-                    <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.showAllUsers" />
+                    <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.index.showAllUsers" />
                 </a>
             </div>
 
@@ -32,26 +32,26 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.index = Sa
                     <Neos.Fusion.Form:Hidden field.name="unvalidatedEmailOnly" field.value="1" @if={unvalidatedEmailOnly} />
                     <Neos.Fusion.Form:Input
                         field.name="searchTerm"
-                        attributes.placeholder={I18n.id('module.index.search').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+                        attributes.placeholder={I18n.id('module.index.search').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
                         attributes.data-test-id="search"
                     />
                     <Neos.Fusion.Form:Select field.name="authenticationProviderName" @if={Array.length(providers) > 1}>
                         <Neos.Fusion.Form:Select.Option option.value="">
-                            <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.allProviders" />
+                            <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.index.allProviders" />
                         </Neos.Fusion.Form:Select.Option>
                         <Neos.Fusion:Loop items={providers} itemName="provider">
                             <Neos.Fusion.Form:Select.Option option.value={provider}>{provider}</Neos.Fusion.Form:Select.Option>
                         </Neos.Fusion:Loop>
                     </Neos.Fusion.Form:Select>
                     <Neos.Fusion.Form:Button attributes.class="neos-button">
-                        <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.searchSubmit" />
+                        <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.index.searchSubmit" />
                     </Neos.Fusion.Form:Button>
                 </Neos.Fusion.Form:Form>
 
-                <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.ActionButton
+                <Sandstorm.BackendUserManagement:UserManagement.Component.ActionButton
                     action="sendTestMail"
                     testId="send-test-mail"
-                    label={I18n.id('module.index.sendTestMail').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+                    label={I18n.id('module.index.sendTestMail').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
                 />
             </div>
 
@@ -59,31 +59,31 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.index = Sa
                 <table class="neos-table neos-user-management__table">
                     <thead>
                         <tr>
-                            <th><span class="neos-user-management__visually-hidden"><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.select" /></span></th>
-                            <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.name" /></th>
-                            <th @if={!usernameIsEmail}><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.username" /></th>
-                            <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id={usernameIsEmail ? 'field.emailOrUsername' : 'field.email'} /></th>
-                            <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.roles" /></th>
-                            <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.active" /></th>
-                            <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.secondFactors" /></th>
-                            <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.lastLogin" /></th>
+                            <th><span class="neos-user-management__visually-hidden"><Sandstorm.BackendUserManagement:UserManagement.Translate id="module.index.select" /></span></th>
+                            <th><Sandstorm.BackendUserManagement:UserManagement.Translate id="field.name" /></th>
+                            <th @if={!usernameIsEmail}><Sandstorm.BackendUserManagement:UserManagement.Translate id="field.username" /></th>
+                            <th><Sandstorm.BackendUserManagement:UserManagement.Translate id={usernameIsEmail ? 'field.emailOrUsername' : 'field.email'} /></th>
+                            <th><Sandstorm.BackendUserManagement:UserManagement.Translate id="field.roles" /></th>
+                            <th><Sandstorm.BackendUserManagement:UserManagement.Translate id="field.active" /></th>
+                            <th><Sandstorm.BackendUserManagement:UserManagement.Translate id="field.secondFactors" /></th>
+                            <th><Sandstorm.BackendUserManagement:UserManagement.Translate id="field.lastLogin" /></th>
                             <th>&nbsp;</th>
                         </tr>
                     </thead>
                     <tbody>
                         <Neos.Fusion:Loop items={users} itemName="user">
-                            <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.UserRow user={user} isSelf={user.userId == currentUserId} usernameIsEmail={usernameIsEmail} />
+                            <Sandstorm.BackendUserManagement:UserManagement.Component.UserRow user={user} isSelf={user.userId == currentUserId} usernameIsEmail={usernameIsEmail} />
                         </Neos.Fusion:Loop>
                     </tbody>
                 </table>
-                <p @if={Array.length(users) == 0}><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.noUsers" /></p>
+                <p @if={Array.length(users) == 0}><Sandstorm.BackendUserManagement:UserManagement.Translate id="module.index.noUsers" /></p>
 
                 <div class="neos-footer">
                     <a href={newUri} class="neos-button neos-button-primary" data-test-id="new-user">
-                        <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.newUser" />
+                        <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.index.newUser" />
                     </a>
                     <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-danger" attributes.data-test-id="delete-selected">
-                        <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.deleteSelected" />
+                        <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.index.deleteSelected" />
                     </Neos.Fusion.Form:Button>
                 </div>
             </Neos.Fusion.Form:Form>
@@ -91,7 +91,7 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.index = Sa
     `
 }
 
-prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.UserRow) < prototype(Neos.Fusion:Component) {
+prototype(Sandstorm.BackendUserManagement:UserManagement.Component.UserRow) < prototype(Neos.Fusion:Component) {
     user = null
     isSelf = false
     usernameIsEmail = false
@@ -119,7 +119,7 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.UserRow
             <td @if={!props.usernameIsEmail}>{String.htmlSpecialChars(Array.join(props.user.accountIdentifiers, ', '))}</td>
             <td>
                 {props.user.primaryEmail ? String.htmlSpecialChars(props.user.primaryEmail) : '-'}
-                <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.EmailBadge @if={props.user.primaryEmail}
+                <Sandstorm.BackendUserManagement:UserManagement.Component.EmailBadge @if={props.user.primaryEmail}
                                                                                            approved={props.user.emailApproved}/>
                 <div @if={props.usernameIsEmail && Array.length(props.otherUsernames) > 0}>
                     {String.htmlSpecialChars(Array.join(props.otherUsernames, ', '))}
@@ -127,13 +127,13 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.UserRow
             </td>
             <td>{Array.join(props.user.roleIdentifiers, ', ')}</td>
             <td>
-                <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id={props.user.active ? 'yes' : 'no'}/>
+                <Sandstorm.BackendUserManagement:UserManagement.Translate id={props.user.active ? 'yes' : 'no'}/>
             </td>
             <td>{props.user.secondFactorCount > 0 ? 'yes' : 'no'}</td>
             <td>{props.user.lastSuccessfulAuthentication ? Date.format(props.user.lastSuccessfulAuthentication, 'Y-m-d H:i') : '-'}</td>
             <td>
                 <a href={props.editUri} class="neos-button neos-button-primary"
-                   title={I18n.id('module.index.edit').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}>
+                   title={I18n.id('module.index.edit').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}>
                     <i class="fas fa-pencil-alt icon-white"></i>
                 </a>
             </td>

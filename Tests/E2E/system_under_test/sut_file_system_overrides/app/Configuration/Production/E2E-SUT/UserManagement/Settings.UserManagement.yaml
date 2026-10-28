@@ -1,5 +1,5 @@
 Sandstorm:
-  NeosTwoFactorAuthentication:
+  BackendUserManagement:
     userManagement:
       enabled: true
       mail:

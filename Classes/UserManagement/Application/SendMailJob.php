@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application;
+namespace Sandstorm\BackendUserManagement\UserManagement\Application;
 
 use Flowpack\JobQueue\Common\Job\JobInterface;
 use Flowpack\JobQueue\Common\Queue\Message;
@@ -46,7 +46,7 @@ class SendMailJob implements JobInterface
         } catch (Throwable $exception) {
             // the async FakeQueue discards the output - without this, a failing mail would leave no trace
             $this->securityLogger->error(
-                'Sandstorm/NeosTwoFactorAuthentication: could not send queued mail: ' . $exception->getMessage(),
+                'Sandstorm/BackendUserManagement: could not send queued mail: ' . $exception->getMessage(),
             );
             // a real queue releases and retries the job
             throw $exception;
@@ -56,6 +56,6 @@ class SendMailJob implements JobInterface
 
     public function getLabel(): string
     {
-        return 'Sandstorm.NeosTwoFactorAuthentication: send mail "' . $this->email->getSubject() . '"';
+        return 'Sandstorm.BackendUserManagement: send mail "' . $this->email->getSubject() . '"';
     }
 }

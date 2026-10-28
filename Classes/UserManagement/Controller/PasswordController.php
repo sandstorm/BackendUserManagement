@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Controller;
+namespace Sandstorm\BackendUserManagement\UserManagement\Controller;
 
 use Neos\Error\Messages\Message;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\I18n\Translator;
 use Neos\Neos\Validation\Validator\PasswordValidator;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\PasswordResetRequestHandler;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserActionTokenService;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserCommandService;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto\UsernameChange;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Sandstorm\BackendUserManagement\UserManagement\Application\PasswordResetRequestHandler;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserActionTokenService;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserCommandService;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\UsernameChange;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 
 /**
  * Forgot password (request a link) and set password (via a mailed link - reset or initial password).
@@ -119,6 +119,6 @@ class PasswordController extends AbstractPublicController
      */
     private function translate(string $id, array $arguments = []): string
     {
-        return (string)$this->translator->translateById($id, $arguments, null, null, 'UserManagement', 'Sandstorm.NeosTwoFactorAuthentication');
+        return (string)$this->translator->translateById($id, $arguments, null, null, 'UserManagement', 'Sandstorm.BackendUserManagement');
     }
 }

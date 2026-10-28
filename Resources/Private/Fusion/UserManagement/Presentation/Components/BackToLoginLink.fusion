@@ -1,4 +1,4 @@
-prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.BackToLoginLink) < prototype(Neos.Fusion:Component) {
+prototype(Sandstorm.BackendUserManagement:UserManagement.Component.BackToLoginLink) < prototype(Neos.Fusion:Component) {
     loginUri = Neos.Fusion:UriBuilder {
         package = 'Neos.Neos'
         controller = 'Login'
@@ -8,7 +8,7 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.BackToL
     renderer = afx`
         <div class="neos-user-management__back-to-login">
             <a href={props.loginUri}>
-                {I18n.id('login.backToLogin').value('Back to login').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+                {I18n.id('login.backToLogin').value('Back to login').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
             </a>
         </div>
     `

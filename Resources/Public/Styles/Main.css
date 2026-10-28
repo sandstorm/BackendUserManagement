@@ -1,0 +1,62 @@
+/*
+ * Styles of the shared login box layout (Page.LoginBoxPage, Component.LoginFlashMessages), used by the 2FA
+ * login/setup flow and the user management screens (forgot / set password, confirm email).
+ * Loaded via Neos.Neos.userInterface.backendLoginForm, before the feature stylesheets.
+ */
+
+.neos-backend-user-management__flashmessage {
+    font-size: 13px;
+    line-height: 1.4;
+    padding: 8px;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.neos-backend-user-management__flashmessage--warning {
+    background-color: #F89406;
+}
+
+.neos-backend-user-management__flashmessage--info {
+    background-color: #5bc0de;
+}
+
+.neos-backend-user-management__flashmessage--error {
+    background-color: #ff460d;
+}
+
+.neos-backend-user-management__flashmessage--ok {
+    background-color: #00a338;
+}
+
+.neos-backend-user-management__login-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #000000;
+    opacity: 0.85;
+}
+
+/* Prominent notice below the login heading, e.g. explaining why the enforced 2FA setup is shown. */
+.neos-backend-user-management__notice {
+    margin: 0 0 20px;
+    padding: 12px 16px;
+    border-left: 3px solid #00b5ff;
+    background: rgba(0, 181, 255, .5);
+    color: #fff;
+    font-size: .95rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
+/* Keyboard focus ring for buttons and button-styled links. Scoped to .neos-backend-user-management__login
+   (added to our login box templates) so the first-factor Neos login is untouched. !important
+   beats Neos core's `:focus { outline: 0 }` reset. */
+.neos-backend-user-management__login .neos-button:focus-visible {
+    outline: 2px solid #00b5ff !important;
+    outline-offset: 2px;
+}
+
+.neos-backend-user-management__login fieldset + fieldset {
+    margin-top: 16px;
+}

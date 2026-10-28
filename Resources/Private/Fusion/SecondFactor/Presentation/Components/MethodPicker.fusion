@@ -1,0 +1,23 @@
+prototype(Sandstorm.BackendUserManagement:SecondFactor.Component.MethodPicker) < prototype(Neos.Fusion:Component) {
+    # array of { id, label, description, href }
+    # Each method is a link whose visible label is its accessible name, so it can
+    # be addressed in tests by role+name (e.g. "Authenticator app") — no test id needed.
+    items = ${[]}
+
+    renderer = afx`
+        <div class="neos-second-factor__method-picker neos-actions">
+            <Neos.Fusion:Loop items={props.items} itemName="item">
+                <div @if.separatorBefore={item.separatorBefore} class="neos-second-factor__or-separator">
+                    <span>{I18n.id('login.or').package('Sandstorm.BackendUserManagement').source('SecondFactor')}</span>
+                </div>
+                <div class="neos-second-factor__method-picker__row">
+                    <h2 @if.heading={item.heading} class="neos-second-factor__method-picker__heading">{item.heading}</h2>
+                    <a aria-describedby={item.id} href={item.href} class="btn neos-button neos-login-btn neos-second-factor__method-picker__button">
+                        {item.label}
+                    </a>
+                    <label id={item.id} class="neos-second-factor__method-picker__description">{item.description}</label>
+                </div>
+            </Neos.Fusion:Loop>
+        </div>
+    `
+}

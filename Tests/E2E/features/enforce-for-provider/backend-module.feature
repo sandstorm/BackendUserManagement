@@ -2,7 +2,7 @@
 Feature: Backend module with 2FA enforced for the Neos.Neos:Backend authentication provider
 
   # Requires FLOW_CONTEXT=Production/E2E-SUT/EnforceForProvider
-  # Config: enforce2FAForAuthenticationProviders: ['Neos.Neos:Backend']
+  # Config: secondFactor.enforceForAuthenticationProviders: ['Neos.Neos:Backend']
 
   Background:
     Given A user with username "admin", password "password" and role "Neos.Neos:Administrator" with enrolled 2FA device with name "Admin Initial Device" exists

@@ -34,11 +34,3 @@
 .neos-user-management__form .neos-controls {
     margin-bottom: 12px;
 }
-
-.neos-two-factor-flashmessage-error {
-    background-color: #ff460d;
-}
-
-.neos-two-factor-flashmessage-ok {
-    background-color: #00a338;
-}

@@ -1,5 +1,5 @@
 # Label + control, Neos backend form markup.
-prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.FormField) < prototype(Neos.Fusion:Component) {
+prototype(Sandstorm.BackendUserManagement:UserManagement.Component.FormField) < prototype(Neos.Fusion:Component) {
     labelId = ''
     for = ''
     hint = ''
@@ -8,7 +8,7 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.FormFie
     renderer = afx`
         <div class="neos-control-group">
             <label class="neos-control-label" for={props.for}>
-                <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id={props.labelId} />
+                <Sandstorm.BackendUserManagement:UserManagement.Translate id={props.labelId} />
             </label>
             <div class="neos-controls">
                 {props.content}
@@ -19,7 +19,7 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.FormFie
 }
 
 # Checkbox list of all assignable roles.
-prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.RoleCheckboxes) < prototype(Neos.Fusion:Component) {
+prototype(Sandstorm.BackendUserManagement:UserManagement.Component.RoleCheckboxes) < prototype(Neos.Fusion:Component) {
     roles = ${[]}
     selectedRoleIdentifiers = ${[]}
     idPrefix = 'role'

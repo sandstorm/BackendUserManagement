@@ -2,7 +2,7 @@
 Feature: Login flow with 2FA enforced for administrators only
 
   # Requires FLOW_CONTEXT=Production/E2E-SUT/EnforceForRole
-  # Config: enforce2FAForRoles: ['Neos.Neos:Administrator']
+  # Config: secondFactor.enforceForRoles: ['Neos.Neos:Administrator']
 
   Background:
     Given A user with username "admin", password "password" and role "Neos.Neos:Administrator" exists

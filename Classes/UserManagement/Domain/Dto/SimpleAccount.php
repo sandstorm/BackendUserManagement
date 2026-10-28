@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto;
+namespace Sandstorm\BackendUserManagement\UserManagement\Domain\Dto;
 
 /**
  * Read model of one Flow account of a {@see SimpleUser}.

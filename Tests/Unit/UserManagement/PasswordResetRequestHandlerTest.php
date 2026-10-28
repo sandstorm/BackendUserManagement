@@ -1,6 +1,6 @@
 <?php
 
-namespace Sandstorm\NeosTwoFactorAuthentication\Tests\Unit\UserManagement;
+namespace Sandstorm\BackendUserManagement\Tests\Unit\UserManagement;
 
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\Security\Account;
@@ -8,12 +8,12 @@ use Neos\Flow\Tests\UnitTestCase;
 use Neos\Neos\Domain\Model\User;
 use Neos\Party\Domain\Model\ElectronicAddress;
 use Psr\Log\LoggerInterface;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\PasswordResetRequestHandler;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\SimpleUserFinder;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\Throttle;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserActionTokenService;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserMailer;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Sandstorm\BackendUserManagement\UserManagement\Application\PasswordResetRequestHandler;
+use Sandstorm\BackendUserManagement\UserManagement\Application\SimpleUserFinder;
+use Sandstorm\BackendUserManagement\UserManagement\Application\Throttle;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserActionTokenService;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserMailer;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 
 /**
  * Resolution of "username or email" to accounts and recipients, incl. several accounts sharing one email.

@@ -1,0 +1,77 @@
+prototype(Sandstorm.BackendUserManagement:SecondFactor.Component.SetupWebAuthnStep) < prototype(Neos.Fusion:Component) {
+    flashMessages = ${[]}
+    # where to redirect on successful registration
+    redirectUrl = '/neos'
+
+    # Whether this screen registers a discoverable, passwordless-capable passkey (true) or a plain
+    # second factor (false). The credential type is decided by the entry point that led here — the
+    # "Passkey Registration" section passes true, the "Create second factor" picker passes false —
+    # so this screen always shows a single button.
+    discoverable = false
+
+    # Localized error strings handed to webauthn.js. Keys match the
+    # DOMException name thrown by the browser; "result" / "default" /
+    # "unsupported" are the fixed fallbacks the script always needs.
+    errorMessages = Neos.Fusion:DataStructure {
+        result = ${I18n.id('webauthn.setup.error.result').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+        default = ${I18n.id('webauthn.setup.error.generic').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+        unsupported = ${I18n.id('webauthn.error.unsupportedBrowser').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+        NotAllowedError = ${I18n.id('webauthn.error.notAllowed').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+        InvalidStateError = ${I18n.id('webauthn.error.invalidState').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+        NotSupportedError = ${I18n.id('webauthn.error.notSupported').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+        SecurityError = ${I18n.id('webauthn.error.security').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+        AbortError = ${I18n.id('webauthn.error.abort').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+        ConstraintError = ${I18n.id('webauthn.error.constraint').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+        UnknownError = ${I18n.id('webauthn.error.unknown').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+    }
+
+    # a form so Enter in the name field triggers the registration - webauthn.js prevents the actual submit
+    renderer = afx`
+        <form
+            class="neos-second-factor__webauthn-step"
+            data-webauthn-register
+            data-options-url="/neos/second-factor-webauthn/register-options"
+            data-verify-url="/neos/second-factor-webauthn/register-verify"
+            data-redirect-url={props.redirectUrl}
+            data-webauthn-messages={Json.stringify(props.errorMessages)}
+        >
+            <fieldset>
+                <p class="neos-second-factor__webauthn-intro">
+                    {I18n.id('webauthn.setup.intro').package('Sandstorm.BackendUserManagement').source('SecondFactor')}
+                </p>
+                <br />
+                <div class="neos-control-group">
+                    <input type="text"
+                        id="name"
+                        data-webauthn-name
+                        class="neos-span6"
+                        autocomplete="off"
+                        placeholder={I18n.id('name-placeholder').package('Sandstorm.BackendUserManagement').source('SecondFactor')}
+                        aria-label={I18n.id('name-placeholder').package('Sandstorm.BackendUserManagement').source('SecondFactor')}
+                    />
+                </div>
+                <div class="neos-actions">
+                    <button type="submit"
+                        class="neos-button neos-login-btn neos-second-factor__webauthn-button"
+                        data-webauthn-trigger
+                        data-webauthn-discoverable={props.discoverable ? 'true' : 'false'}
+                    >
+                        {props.discoverable
+                            ? I18n.id('webauthn.setup.button.passkey').package('Sandstorm.BackendUserManagement').source('SecondFactor')
+                            : I18n.id('webauthn.setup.button.secondFactor').package('Sandstorm.BackendUserManagement').source('SecondFactor')}
+                    </button>
+                </div>
+                <div class="neos-tooltip neos-bottom neos-in neos-tooltip-error" data-webauthn-error style="display: none">
+                    <div class="neos-tooltip-arrow"></div>
+                    <div class="neos-tooltip-inner" role="alert" data-webauthn-error-message></div>
+                </div>
+                <Neos.Fusion:Loop items={props.flashMessages} itemName="flashMessage">
+                    <div class="neos-tooltip neos-bottom neos-in">
+                        <div class="neos-tooltip-arrow"></div>
+                        <div class="neos-tooltip-inner" role="alert">{flashMessage}</div>
+                    </div>
+                </Neos.Fusion:Loop>
+            </fieldset>
+        </form>
+    `
+}

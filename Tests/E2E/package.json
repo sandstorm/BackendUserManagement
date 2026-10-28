@@ -1,5 +1,5 @@
 {
-  "name": "sandstorm-neostwofactorauthentication-e2e",
+  "name": "sandstorm-backendusermanagement-e2e",
   "private": true,
   "type": "module",
   "scripts": {

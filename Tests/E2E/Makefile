@@ -8,7 +8,7 @@ NEOS9_COMPOSE = $(E2E_DIR)/system_under_test/neos9/docker-compose.yaml
 .PHONY: help setup setup-sut setup-test generate-bdd-files test test-neos8 test-neos9 \
 	test-neos8-defaults test-neos8-enforce-all test-neos8-enforce-role test-neos8-enforce-provider test-neos8-passwordless test-neos8-enforce-all-passwordless test-neos8-user-management test-neos8-username-is-email \
 	test-neos9-defaults test-neos9-enforce-all test-neos9-enforce-role test-neos9-enforce-provider test-neos9-passwordless test-neos9-enforce-all-passwordless test-neos9-user-management test-neos9-username-is-email \
-	start-sut-neos8 start-sut-neos9 log-sut-neos8 log-sut-neos9 enter-sut-neos8 enter-sut-neos9 sut-down
+	start-sut-neos8 start-sut-neos9 log-sut-neos8 log-sut-neos9 enter-sut-neos8 enter-sut-neos9 stop-sut-neos8 stop-sut-neos9 sut-prune
 
 # COLORS
 GREEN  := $(shell tput -Txterm setaf 2)

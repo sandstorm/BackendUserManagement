@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto;
+namespace Sandstorm\BackendUserManagement\UserManagement\Domain\Dto;
 
 /**
  * The "simplified user model": hides Neos' User -> Person -> ElectronicAddress / Account-per-provider

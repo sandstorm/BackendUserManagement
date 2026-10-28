@@ -1,0 +1,56 @@
+prototype(Sandstorm.BackendUserManagement:SecondFactor.Component.LoginSecondFactorStep) < prototype(Neos.Fusion:Component) {
+    flashMessages = ${[]}
+
+    severityMapping = Neos.Fusion:DataStructure {
+        OK = 'success'
+        Notice = 'notice'
+        Warning = 'warning'
+        Error = 'error'
+    }
+
+    renderer = afx`
+        <Neos.Fusion.Form:Form form.target.action="checkSecondFactor" form.target.controller="Login">
+            <fieldset>
+                <label for="secondFactor" class="neos-backend-user-management__login-label">
+                    {I18n.id('login.otp.label').package('Sandstorm.BackendUserManagement').source('SecondFactor')}
+                </label>
+                <div class="neos-controls">
+                    <Neos.Fusion.Form:Input
+                        field.name="otp"
+                        attributes.required="required"
+                        attributes.id="secondFactor"
+                        attributes.placeholder={I18n.id('otp-placeholder').package('Sandstorm.BackendUserManagement').source('SecondFactor')}
+                        attributes.class="neos-span12"
+                        attributes.aria-label={I18n.id('otp-placeholder').package('Sandstorm.BackendUserManagement').source('SecondFactor')}
+                        attributes.autocomplete="off"
+                        attributes.autofocus={true}
+                    />
+                </div>
+
+                <div class="neos-actions">
+                    <Neos.Fusion.Form:Button attributes.class="neos-span5 neos-pull-right neos-button neos-login-btn">
+                        {I18n.id('login').value('Login').package('Neos.Neos').source('Main').translate()}
+                    </Neos.Fusion.Form:Button>
+                    <Neos.Fusion.Form:Button attributes.class="neos-span5 neos-pull-right neos-button neos-login-btn neos-disabled neos-hidden">
+                        {I18n.id('authenticating').value('Authenticating').package('Neos.Neos').source('Main').translate()} <span class="neos-ellipsis"></span>
+                    </Neos.Fusion.Form:Button>
+                </div>
+
+                <Neos.Fusion:Loop items={props.flashMessages} itemName="flashMessage">
+                    <div
+                        class={'neos-tooltip neos-bottom neos-in neos-tooltip-' + props.severityMapping[flashMessage.severity]}>
+                        <script @if.error={flashMessage.severity == 'Error'}>
+                            {
+                                "document.querySelector('fieldset').classList.add('effect--shake');"
+                            }
+                        </script>
+                        <div class="neos-tooltip-arrow"></div>
+                        <div class="neos-tooltip-inner" role="alert">
+                            {flashMessage}
+                        </div>
+                    </div>
+                </Neos.Fusion:Loop>
+            </fieldset>
+        </Neos.Fusion.Form:Form>
+    `
+}

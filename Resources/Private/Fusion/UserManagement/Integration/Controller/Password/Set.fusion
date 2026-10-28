@@ -1,10 +1,10 @@
-Sandstorm.NeosTwoFactorAuthentication.UserManagement.PasswordController.set = Sandstorm.NeosTwoFactorAuthentication:UserManagement.Page.PublicPage {
+Sandstorm.BackendUserManagement.UserManagement.PasswordController.set = Sandstorm.BackendUserManagement:UserManagement.Page.PublicPage {
     body = Neos.Fusion:Case {
         invalid {
             condition = ${!valid}
-            renderer = Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.PublicMessage {
+            renderer = Sandstorm.BackendUserManagement:UserManagement.Component.PublicMessage {
                 testId = 'link-invalid'
-                text = ${I18n.id('link.invalid').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+                text = ${I18n.id('link.invalid').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
             }
         }
         form {
@@ -13,8 +13,8 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.PasswordController.set = Sa
                 <Neos.Fusion.Form:Form form.target.action="setSubmit" form.target.arguments={{token: token}}
                                        attributes.class="neos-user-management__form">
                     <fieldset>
-                        <p class="neos-two-factor__login-label">
-                            {I18n.id(action == 'initialPassword' ? 'password.set.introInitial' : 'password.set.introReset').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').arguments([String.htmlSpecialChars(username)]).translate()}
+                        <p class="neos-backend-user-management__login-label">
+                            {I18n.id(action == 'initialPassword' ? 'password.set.introInitial' : 'password.set.introReset').package('Sandstorm.BackendUserManagement').source('UserManagement').arguments([String.htmlSpecialChars(username)]).translate()}
                         </p>
 
                         <div class="neos-controls">
@@ -29,7 +29,7 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.PasswordController.set = Sa
                                 attributes.autofocus={true}
                                 attributes.autocomplete="new-password"
                                 attributes.minlength={passwordMinimumLength}
-                                attributes.placeholder={I18n.id('password.set.password').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+                                attributes.placeholder={I18n.id('password.set.password').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
                             />
                         </div>
                         <div class="neos-controls">
@@ -38,13 +38,13 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.PasswordController.set = Sa
                                 attributes.id="passwordConfirmation"
                                 attributes.required="required"
                                 attributes.autocomplete="new-password"
-                                attributes.placeholder={I18n.id('password.set.passwordConfirmation').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+                                attributes.placeholder={I18n.id('password.set.passwordConfirmation').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
                             />
                         </div>
                         <div class="neos-actions">
                             <Neos.Fusion.Form:Button attributes.class="neos-button neos-login-btn"
                                                      attributes.data-test-id="set-password">
-                                {I18n.id('password.set.submit').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+                                {I18n.id('password.set.submit').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
                             </Neos.Fusion.Form:Button>
                         </div>
                     </fieldset>

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Controller;
+namespace Sandstorm\BackendUserManagement\UserManagement\Controller;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Http\ServerRequestAttributes;

@@ -1,257 +1,276 @@
-# Neos Backend 2FA
+# Sandstorm.BackendUserManagement
 
-Extend the Neos backend login to support second factors and passwordless passkey login. We support
-TOTP tokens (Authenticator apps) and WebAuthn / FIDO2 passkeys — both platform authenticators
-(Touch ID, Windows Hello) and hardware security keys (e.g. Yubikey).
+Backend user management for Neos 8 and 9: second factors (TOTP, passkeys), passwordless passkey login, forgot
+password, initial password via mail, email validation and a replacement for the core user module.
 
-> ⚠️ **Security Notice:** Versions prior to `4.0.0` are affected by a security vulnerability in the underlying `web-authn-lib` dependency used for WebAuthn/FIDO2 second-factor authentication. This has been fixed in v4. **Please upgrade to v4 or later immediately** — see [PR #56](https://github.com/sandstorm/NeosTwoFactorAuthentication/pull/56) for details.
-
-## Installation
+Successor of `sandstorm/neostwofactorauthentication` (abandoned) - upgrading? See [MIGRATION.md](docs/MIGRATION.md).
 
 ```
-composer require sandstorm/neostwofactorauthentication
+composer require sandstorm/backendusermanagement
+./flow doctrine:migrate
 ```
 
-## What this package does
+All settings with their defaults: [`Settings.2FA.yaml`](Configuration/Settings.2FA.yaml),
+[`Settings.UserManagement.yaml`](Configuration/Settings.UserManagement.yaml).
 
-This package allows all users to register multiple second factors — either a user- and passwordless **Passkey**, or a second factor in addition to their username and password. Second factors can be **TOTP tokens** (Authenticator App) or **passkeys** (WebAuthn / FIDO2: a platform authenticator such as Touch ID or
-Windows Hello, or a hardware key such as a Yubikey). Users can register multiple and pick which to
-use at login. When passwordless login is enabled (see [Passwordless passkey login](#passwordless-passkey-login)),
-a discoverable passkey can also be used to sign in straight from the login screen **without a
-password**. 
-As an Administrator you are able to delete factors for users again, in case they locked themselves out.
+**Features**
 
-The management module distinguishes the two kinds of WebAuthn credential by a badge: a discoverable,
-passwordless-capable credential is shown as **"Passkey"**, a non-discoverable one (usable only as a
-second factor, e.g. a U2F-only key) as **"Passkey as 2nd factor"**.
+- [Second factors](#second-factors) (always on)
+  - [TOTP (authenticator apps)](#totp-authenticator-apps)
+  - [Passkeys (WebAuthn / FIDO2)](#passkeys-webauthn--fido2)
+  - [Enforce 2FA](#enforce-2fa)
+  - [Passwordless passkey login](#passwordless-passkey-login) (opt-in)
+  - [Reload on session timeout](#reload-on-session-timeout)
+- [User management](#user-management) (on by default)
+  - [Forgot password](#forgot-password)
+    - [Existing users](#existing-users)
+  - [Initial password](#initial-password)
+  - [Email validation](#email-validation)
+  - [Username follows the email](#username-follows-the-email) (opt-in)
+  - [User management module](#user-management-module) (opt-in)
+  - [CLI](#cli)
 
-### Passkeys (WebAuthn / FIDO2)
+---
 
-Browsers expose WebAuthn only over `https://` or on `localhost`. Make sure the Neos backend is served
-over HTTPS in production, otherwise the passkey flow will fail. Note that an IP address (e.g.
-`127.0.0.1`) cannot be used as the relying-party id — use `localhost` for local development.
+## Second factors
 
-Configure the relying party identifier when your backend hostname differs from the registered domain:
+Users register any number of second factors in `Management > Two-Factor Authentication` and pick one at login.
+Administrators can delete factors of other users (e.g. after a lockout).
 
-```yml
-Sandstorm:
-  NeosTwoFactorAuthentication:
-    webAuthn:
-      relyingPartyName: 'My CMS'
-      # null means: derive from the request hostname (works for same-origin deployments).
-      # Set to the registrable domain ('example.com') if you serve the backend from a subdomain
-      # and want credentials to be usable across subdomains.
-      relyingPartyId: null
-      # Default is 'discouraged' so FIDO U2F-only authenticators (e.g. YubiKey 4) work
-      # via the browser's U2F-compat fallback. Set to 'preferred' or 'required' to
-      # demand PIN/biometric — note that 'required' excludes U2F-only keys.
-      userVerification: 'discouraged'
-      timeout: 60000
-```
+![List of second factors](docs/NeosTwoFactorAuth-ListOf2ndFactors.png)
 
-##### Local development over plain HTTP
+### TOTP (authenticator apps)
 
-WebAuthn requires a secure context. The browser treats `localhost` as secure, but the verification
-library (webauthn-lib v5) is stricter: it rejects **every** host served over `http://` - including
-`localhost` itself - with `Invalid scheme. HTTPS required.` (HTTP 400 on `register-verify` /
-login verification), unless the host is listed under `securedRelyingPartyIds`:
-
-```yml
-Sandstorm:
-  NeosTwoFactorAuthentication:
-    webAuthn:
-      # LOCAL DEVELOPMENT ONLY — never add a real production hostname here.
-      # Relying-party ids listed here are treated as secured even without HTTPS.
-      securedRelyingPartyIds:
-        - 'localhost'
-        - 'myproject.localhost'
-```
-
-Keep this scoped to a development context (e.g. `Configuration/Development/Settings.yaml`). In
-production the backend must be served over HTTPS and this setting should stay empty (the default).
-
-#### Passwordless passkey login
-
-[Demo Video](https://github.com/user-attachments/assets/29907363-ccda-4417-b501-e36921869e47)
-
-A discoverable passkey is inherently multi-factor (something you have + the verification you perform
-on the device), so it can serve as the **only** login step. When enabled, a "Sign in with a passkey"
-button appears on the Neos login screen and a single tap signs the user into the backend — no
-username, no password.
-
-This is **disabled by default** and must be turned on explicitly. The gate is enforced server-side
-(the endpoints reject requests while disabled):
-
-```yml
-Sandstorm:
-  NeosTwoFactorAuthentication:
-    webAuthn:
-      # Default false. When true: the login screen shows "Sign in with a passkey", and credentials
-      # registered from then on are created as discoverable (resident) credentials with user
-      # verification required — i.e. real "Passkeys". When false, WebAuthn credentials are
-      # registered as non-discoverable "Passkey as 2nd factor" and the login button is not shown.
-      passwordlessLoginEnabled: true
-```
-
-Notes:
-- A passkey usable for passwordless login must be **discoverable** (resident) and user-verifying.
-  Credentials registered while this setting was off, or on U2F-only keys (e.g. YubiKey 4), are
-  non-discoverable and remain usable only as a second factor.
-- The management module shows a "Register a passkey" banner nudging users who have no discoverable
-  credential yet, so they can opt into faster sign-in.
-
-#### Attestation
-
-There is no setting for attestation. We always request the `none` conveyance preference, so the
-browser does not return identifying attestation data about the authenticator. Only the `none` and
-`fido-u2f` attestation statement formats are accepted when loading a credential (the latter is
-required for U2F-only authenticators registered via the browser's U2F-compat fallback). Other
-attestation statement types are not supported yet.
-
-#### Authenticator compatibility
-
-The first two columns describe registering a credential **as a second factor** (the effect of the
-`userVerification` setting). The last column describes whether the authenticator can be used for
-**passwordless login**, which always requires a discoverable (resident) credential with user
-verification — independent of the `userVerification` setting.
-
-| Authenticator                                     | 2nd factor — `userVerification: discouraged` | 2nd factor — `userVerification: required` | Passwordless passkey         |
-| ------------------------------------------------- | -------------------------------------------- | ----------------------------------------- | ---------------------------- |
-| YubiKey 5 / FIDO2 keys                            | ✅ touch                                      | ✅ PIN + touch                            | ✅ resident key + PIN/touch  |
-| YubiKey 4 / older U2F-only keys                   | ✅ touch (U2F-compat)                         | ❌ not supported                          | ❌ no resident credentials   |
-| Platform authenticators (Touch ID, Windows Hello) | ✅ biometric                                  | ✅ biometric                              | ✅ resident key + biometric  |
-
-> When `passwordlessLoginEnabled` is on, **every** new registration requires a resident key + user
-> verification, so U2F-only keys (e.g. YubiKey 4) can no longer be registered at all while it is
-> enabled — turn it off if you need to enrol such a key as a second factor. Bear in mind that
-> resident credentials also occupy a limited number of slots on hardware keys.
-
-![NeosTwoFactorAuthPackage-ListOfAll2ndFactors](docs/NeosTwoFactorAuth-ListOf2ndFactors.png)
-
-## User management (forgot password, initial password, user module)
-
-**Opt-in, off by default.** Besides 2FA, this package can replace the core Neos user module and add the missing
-self-service flows to the backend login:
-
-- **Forgot password** – "Forgot your password?" link on the login screen. Users enter their username **or** email
-  address and get a single-use link to set a new password. The answer is always the same, whether an account exists
-  or not. Several accounts sharing one email get **one** mail with one link per username.
-- **Initial password** – administrators create users without typing a password; the user gets a link to set it
-  (default: valid for 7 days). Setting a password via a link also validates the email address.
-- **Email validation** – the user's *primary* email (Neos.Party `ElectronicAddress`, `approved` = validated). Changing
-  it resets the validation and sends a confirmation mail; admins can also mark it as validated.
-- **Username follows the email** (`usernameIsEmail: true`) – new accounts are named after the email. When the email
-  changes, accounts named after the old address are renamed once the new one is validated (by link, by an admin or
-  via CLI), not before - until then the old address stays on the user as a non-primary address. The user is logged
-  out everywhere and gets a mail with the new username. If another account already has that name, the rename is
-  skipped (admin flash message, security log). On Neos 8, the personal workspace (`user-<username>`) is migrated
-  with its unpublished changes; Neos 9 finds it by user id, so nothing to do there.
-- **Backend module** `Administration > User Management` replacing the core user module: search, bulk delete,
-  create, edit (name, email, roles per account, active, password), send reset / initial password / confirmation
-  mails, reset second factors, impersonate, and a "send test mail to me" button to check the mail setup.
-
-Links are validated on GET but only used on POST (mail scanners prefetch links), stored as SHA-256 hashes, expire,
-and are invalidated when a newer link of the same kind is sent or the email changed. Setting a password logs out all
-sessions of the user and never logs in automatically, so 2FA stays in force. Forgot-password requests are throttled
-per username/email and per IP ([symfony/rate-limiter](https://symfony.com/doc/current/rate_limiter.html), sliding
-window, with [symfony/lock](https://symfony.com/doc/current/lock.html)) - behind a reverse proxy, see
-[Running behind a reverse proxy](#running-behind-a-reverse-proxy). Forgot-password mails are sent via a
-[Flowpack.JobQueue.Common](https://github.com/Flowpack/jobqueue-common) queue, so the response time does not reveal
-whether an account exists. By default this is the async `FakeQueue` - a background `./flow` process per mail, no worker
-needed (requires `exec()` and `Neos.Flow.core.phpBinaryPathAndFilename` pointing to the PHP CLI). To use a real queue,
-override `Flowpack.JobQueue.Common.queues.'Sandstorm.NeosTwoFactorAuthentication:UserManagementMail'`.
-
-### Enabling it
-
-Mails are sent with [neos/symfonymailer](https://github.com/neos/symfonymailer) - configure
-`Neos.SymfonyMailer.mailer.dsn`. Then:
+Tested with Google Authenticator, Microsoft Authenticator, Authy and 1Password.
 
 ```yaml
 Sandstorm:
-  NeosTwoFactorAuthentication:
+  BackendUserManagement:
+    secondFactor:
+      # label shown in the authenticator app; empty = site name
+      issuerName: ''
+      # accepted clock drift in seconds (codes from now-leeway to now+leeway); 0 = exact; values >= 30 are clamped to 29
+      totpLeewayInSeconds: 0
+```
+
+### Passkeys (WebAuthn / FIDO2)
+
+Platform authenticators (Touch ID, Windows Hello) and security keys (e.g. YubiKey). Requires HTTPS; an IP address
+cannot be the relying-party id.
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
+    secondFactor:
+      webAuthn:
+        # shown in the browser prompt
+        relyingPartyName: 'Neos Backend'
+        # null = request hostname; set the registrable domain ('example.com') to share credentials across subdomains
+        relyingPartyId: null
+        # 'discouraged' | 'preferred' | 'required' - applies to passkeys as 2nd factor only.
+        # 'required' excludes U2F-only keys (e.g. YubiKey 4).
+        userVerification: 'discouraged'
+        # browser ceremony timeout in ms
+        timeout: 60000
+```
+
+| Authenticator                    | 2nd factor, `discouraged` | 2nd factor, `required` | Passwordless |
+|----------------------------------|---------------------------|------------------------|--------------|
+| YubiKey 5 / FIDO2 keys           | ✅ touch                  | ✅ PIN + touch         | ✅           |
+| YubiKey 4 / U2F-only keys        | ✅ touch                  | ❌                     | ❌           |
+| Touch ID, Windows Hello          | ✅                        | ✅                     | ✅           |
+
+Attestation is always `none` (formats `none` and `fido-u2f` are accepted); there is no setting for it.
+
+#### Local development over plain HTTP
+
+webauthn-lib rejects every `http://` host - including `localhost` - with `Invalid scheme. HTTPS required.` unless
+listed here. Development context only, never in production:
+
+```yaml
+# Configuration/Development/Settings.yaml
+Sandstorm:
+  BackendUserManagement:
+    secondFactor:
+      webAuthn:
+        securedRelyingPartyIds:
+          - 'localhost'
+          - 'myproject.localhost'
+```
+
+### Enforce 2FA
+
+Users without a second factor have to set one up before they can log in.
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
+    secondFactor:
+      # for all users
+      enforceForAll: true
+      # or only for these authentication providers ...
+      enforceForAuthenticationProviders: ['Neos.Neos:Backend']
+      # ... and/or roles
+      enforceForRoles: ['Neos.Neos:Administrator']
+```
+
+![2FA setup screen on login](docs/NeosTwoFactorAuth-Enforce2FASetupScreen.png)
+
+### Passwordless passkey login
+
+A "Sign in with a passkey" button on the login screen - no username, no password. A user-verified passkey counts as
+both factors. [Demo video](https://github.com/user-attachments/assets/29907363-ccda-4417-b501-e36921869e47)
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
+    secondFactor:
+      webAuthn:
+        passwordlessLoginEnabled: true   # default: false, enforced server-side
+```
+
+- Only **discoverable** credentials with user verification work. Credentials registered while this was off, and
+  U2F-only keys, stay 2nd-factor only (badge "Passkey as 2nd factor" vs. "Passkey" in the module).
+- While enabled, new registrations can be a passkey or a touch-only security key as 2nd factor.
+- Users without a passkey see a "Register a passkey" banner in the module.
+
+### Reload on session timeout
+
+When the backend session expires, the Neos UI reloads the page instead of showing the core relogin dialog (which
+cannot handle the second factor). No configuration.
+
+---
+
+## User management
+
+**On by default**: forgot password and the CLI commands. Optional: the [user management module](#user-management-module)
+and [username follows the email](#username-follows-the-email). Mails are sent via
+[neos/symfonymailer](https://github.com/neos/symfonymailer) - configure `Neos.SymfonyMailer.mailer.dsn` and:
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
     userManagement:
-      enabled: true
+      # only accounts of these providers are managed
+      authenticationProviders: ['Neos.Neos:Backend']
       mail:
         from:
-          address: 'no-reply@example.com'   # required
+          address: 'no-reply@example.com'   # required - without it, no mail is sent (error in the security log)
           name: 'My CMS'
 
 Neos:
   Flow:
     http:
-      # required for the CLI commands, which have no request to build the links from
+      # required for the CLI commands (links in mails)
       baseUri: 'https://cms.example.com/'
-  Neos:
-    modules:
-      administration:
-        submodules:
-          users:
-            enabled: false          # the core user module
-          userManagement:
-            enabled: true
 ```
 
-Run `./flow doctrine:migrate` and add a daily cron job for `./flow usermanagement:prunetokens`. Running more than
-one Neos container? See [Running several Neos containers](#running-several-neos-containers). Behind a reverse proxy?
-See [Running behind a reverse proxy](#running-behind-a-reverse-proxy).
+To turn it off: `Sandstorm.BackendUserManagement.userManagement.enabled: false`.
 
-All settings with their defaults are in `Configuration/Settings.UserManagement.yaml` (authentication providers,
-`requireValidatedEmail`, `usernameIsEmail`, link lifetimes, throttle limits and lock store, password length).
+Add a daily cron job for `./flow usermanagement:prunetokens`.
 
-Permissions mirror the core user module: `Neos.Neos:Administrator` may manage everybody, `Neos.Neos:UserManager`
-only users with the same or a subset of their roles. Nobody can delete, deactivate or lock out themselves.
-
-### CLI
-
-| Command | |
-|---|---|
-| `usermanagement:sendinitialpassword <username>` | mail a "set your password" link |
-| `usermanagement:sendreset <username>` | mail a "reset your password" link |
-| `usermanagement:setemail <username> <email> [--validated]` | set the primary email, e.g. of legacy users |
-| `usermanagement:duplicateemails` | list users sharing a primary email (legacy data; the module prevents new ones) |
-| `usermanagement:prunetokens` | delete used/expired links (cron) |
-
-### Running behind a reverse proxy
-
-The **forgot-password throttle** limits requests per IP. Behind a reverse proxy (ingress, load balancer, CDN), Flow only
-sees the client's IP if the proxy is trusted - otherwise all requests share the proxy's IP, and forgot-password is
-blocked for everybody after 50 requests in 15 minutes. Trust the proxy:
+Links in mails are single-use, stored as SHA-256 hashes, expire, are invalidated by a newer link of the same kind, and
+are only consumed on POST (mail scanners prefetch). Setting a password logs out all sessions of the user and never
+logs in, so 2FA stays in force.
 
 ```yaml
-# Configuration/Settings.yaml of your project
+Sandstorm:
+  BackendUserManagement:
+    userManagement:
+      # ISO 8601 durations
+      tokenLifetime:
+        resetPassword: 'PT24H'
+        initialPassword: 'P7D'
+        verifyEmail: 'P7D'
+      passwordPolicy:
+        minimumLength: 1
+        maximumLength: 255
+```
+
+### Forgot password
+
+"Forgot your password?" on the login screen. Users enter username or email and get a link to set a new password. The
+response is identical whether an account exists or not; several accounts sharing an email get one mail.
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
+    userManagement:
+      # only send to validated primary email addresses
+      requireValidatedEmail: true
+```
+
+#### Existing users
+
+Users created before (e.g. via the core user module) usually have no or no validated email address:
+
+- **They get no mail.** The response is still the generic one; only the security log has a warning. Validate their
+  addresses with `./flow usermanagement:setemail <username> <email> --validated` or, in the
+  [user management module](#user-management-module), send them a confirmation link or "Mark as validated" (its index
+  shows how many users are affected).
+- **Shared addresses:** all accounts sharing an email get their links in one mail to it. Find them with
+  `./flow usermanagement:duplicateemails` and give each user its own address.
+- `requireValidatedEmail: false` covers them without validating, but sends links to addresses nobody ever confirmed
+  (possibly stale or mistyped) - not recommended.
+
+#### Mail queue
+
+Forgot-password mails go through a [Flowpack.JobQueue.Common](https://github.com/Flowpack/jobqueue-common) queue so
+the response time does not leak whether an account exists. Default: async `FakeQueue` (one background `./flow`
+process per mail, needs `exec()` and `Neos.Flow.core.phpBinaryPathAndFilename`). For a real queue:
+
+```yaml
+Flowpack:
+  JobQueue:
+    Common:
+      queues:
+        'Sandstorm.BackendUserManagement:UserManagementMail':
+          className: 'Flowpack\JobQueue\Redis\Queue\RedisQueue'   # then run ./flow job:work
+```
+
+Never set `async: false` - the request would wait for the mail again.
+
+#### Throttle
+
+Requests are rate-limited per username/email and per IP
+([symfony/rate-limiter](https://symfony.com/doc/current/rate_limiter.html), sliding window):
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
+    userManagement:
+      throttle:
+        perIdentifier:
+          limit: 3
+          window: 'PT15M'
+        perIp:
+          enabled: true
+          limit: 2
+          window: 'PT15M'
+        # symfony/lock DSN
+        lockStore: 'flock'
+```
+
+**Behind a reverse proxy**, trust it - otherwise all clients share the proxy's IP and the per-IP limit becomes
+global. Don't use `'*'`, clients could then spoof `X-Forwarded-For`:
+
+```yaml
 Neos:
   Flow:
     http:
       trustedProxies:
-        # address ranges of your proxies - or set the env variable FLOW_HTTP_TRUSTED_PROXIES
-        proxies:
+        proxies:              # or env FLOW_HTTP_TRUSTED_PROXIES
           - '10.0.0.0/8'
 ```
 
-Or, if you can't (or a WAF / the ingress limits requests already), disable the per-IP limit. The per-username/email
-limit stays:
+If you can't (or a WAF already limits requests), disable the per-IP limit instead with `throttle.perIp.enabled: false`.
+
+**Several Neos containers**: limiter state and lock default to the local file system, so each container counts on
+its own. Share both, e.g. via Redis (needs the PHP `redis` extension; `redis://` lock store needs `symfony/cache`):
 
 ```yaml
-# Configuration/Settings.yaml of your project
-Sandstorm:
-  NeosTwoFactorAuthentication:
-    userManagement:
-      throttle:
-        perIp:
-          enabled: false
-```
-
-Don't set `proxies: '*'` to trust everybody: clients could then fake `X-Forwarded-For` and bypass the per-IP limit.
-
-### Running several Neos containers
-
-For the user management, the **forgot-password throttle** needs extra configuration if you run Neos in multiple containers. Its limiter state and lock
-default to the local file system, so every container would count on its own and the limit would multiply by the
-number of containers - silently. Point both to a shared cache, e.g. Redis:
-
-```yaml
-# Configuration/Caches.yaml of your project
-Sandstorm_NeosTwoFactorAuthentication_Throttle:
+# Configuration/Caches.yaml
+Sandstorm_BackendUserManagement_Throttle:
   backend: Neos\Cache\Backend\RedisBackend
   backendOptions:
     hostname: 'redis'
@@ -260,333 +279,91 @@ Sandstorm_NeosTwoFactorAuthentication_Throttle:
 ```
 
 ```yaml
-# Configuration/Settings.yaml of your project
+# Configuration/Settings.yaml
 Sandstorm:
-  NeosTwoFactorAuthentication:
+  BackendUserManagement:
     userManagement:
       throttle:
-        # any symfony/lock DSN; redis:// needs `composer require symfony/cache`
         lockStore: 'redis://redis:6379'
 ```
 
-Both need the PHP `redis` extension. Tokens of mailed links are stored in the database and need nothing extra.
+### Initial password
 
-### Package structure
+Administrators create users without a password; the user gets a link to set one (lifetime:
+`tokenLifetime.initialPassword`). Setting a password via a link also validates the email address.
 
-The 2FA code lives in the top-level namespaces (`Controller`, `Domain`, `Service`, ...) as before. The user
-management is a separate vertical slice, so further features can be added the same way:
+### Email validation
 
-```
-Classes/UserManagement/
-  Domain/        UserActionToken entity, SimpleUser DTO, UserActionType
-  Application/   SimpleUserFinder (read) + UserCommandService (write) hide Neos' User/Person/Account model;
-                 token service, forgot-password handler, mailer, throttle
-  Controller/    public Password + EmailVerification controllers, backend ModuleController
-  Command/       usermanagement:* CLI
-Configuration/Settings.UserManagement.yaml
-Resources/Private/Fusion/UserManagement/   screens, module views, mail templates
-Resources/Private/Translations/*/UserManagement.xlf
-```
+The user's primary email (Neos.Party `ElectronicAddress`, `approved` = validated). Changing it resets validation and
+sends a confirmation mail (lifetime: `tokenLifetime.verifyEmail`); admins can also mark it as validated.
 
-## Versioning Scheme
+### Username follows the email
 
-| Package Version | Neos / Flow Version | Supported | Remarks       |
-| --------------- | ------------------- | --------- |---------------|
-| 4.x             | 9.x, 8.x.           | ✅        | `main` branch |
-| 3.x             | 9.x, 8.x.           |           |               |
-| 2.x             | 9.x, 8.x, 7.x       |           |               |
-| 1.x             | 9.x, 8.x, 7.x, 3.x  |           |               |
-
-## Settings
-
-### Enforce 2FA
-
-To enforce the setup and usage of 2FA you can add the following to your `Settings.yaml`.
-
-```yml
+```yaml
 Sandstorm:
-  NeosTwoFactorAuthentication:
-    # enforce 2FA for all users
-    enforceTwoFactorAuthentication: true
+  BackendUserManagement:
+    userManagement:
+      usernameIsEmail: true   # default: false
 ```
 
-With this setting, no user can login into the CMS without setting up a second factor first.
+New accounts are named after the email (username field hidden). On email change, accounts named after the old address
+are renamed once the new one is validated; the user is logged out everywhere and gets a mail with the new username.
+If the name is taken, the rename is skipped (flash message, security log). On Neos 8 the personal workspace is
+migrated with its unpublished changes.
 
-![NeosTwoFactorAuthPackage-Enforce2FASetupScreenOnLogin](docs/NeosTwoFactorAuth-Enforce2FASetupScreen.png)
+### User management module
 
-In addition, you can enforce 2FA for specific authentication providers and/or roles by adding following to your `Settings.yaml`
+`Administration > User Management`, replacing the core user module: search, bulk delete, create, edit (name, email,
+roles per account, active, password), send reset / initial password / confirmation mails, reset second factors,
+impersonate, send a test mail to yourself.
 
-```yml
-Sandstorm:
-  NeosTwoFactorAuthentication:
-    # enforce 2FA for specific authentication providers
-    enforce2FAForAuthenticationProviders: ["Neos.Neos:Backend"]
-    # enforce 2FA for specific roles
-    enforce2FAForRoles: ["Neos.Neos:Administrator"]
+![User management module: list of users](docs/usermanagement_ui_index.png)
+
+![User management module: edit user](docs/usermanagement_ui_edit.png)
+
+```yaml
+Neos:
+  Neos:
+    modules:
+      administration:
+        submodules:
+          users:
+            enabled: false   # core module
+          userManagement:
+            enabled: true
 ```
 
-### Issuer Naming
+Permissions mirror the core module: `Neos.Neos:Administrator` manages everybody, `Neos.Neos:UserManager` only users
+with the same or a subset of their roles. Nobody can delete, deactivate or lock out themselves.
 
-To override the default sitename as issuer label, you can define one via the configuration settings:
+### CLI
 
-```yml
-Sandstorm:
-  NeosTwoFactorAuthentication:
-    # (optional) if set this will be used as a naming convention for the TOTP. If empty the Site name will be used
-    issuerName: ""
-```
+The mail commands require `userManagement.enabled` and `Neos.Flow.http.baseUri`. Commands taking a `<username>` also
+accept `--authentication-provider` (default: first of `authenticationProviders`).
 
-### TOTP leeway
+| Command                                                     |                                                  |
+|-------------------------------------------------------------|--------------------------------------------------|
+| `usermanagement:sendinitialpassword <username>`             | mail a "set your password" link                  |
+| `usermanagement:sendreset <username>`                       | mail a "reset your password" link                |
+| `usermanagement:setemail <username> <email> [--validated]`  | set the primary email (e.g. legacy users)        |
+| `usermanagement:duplicateemails`                            | list users sharing a primary email (legacy data) |
+| `usermanagement:prunetokens`                                | delete used/expired links (cron)                 |
 
-By default, TOTP codes are verified against the current 30-second window only, with no tolerance for
-clock drift between the user's device and the server. If users occasionally hit "invalid code"
-errors near the boundary of a code's lifetime, you can allow some drift via:
+---
 
-```yml
-Sandstorm:
-  NeosTwoFactorAuthentication:
-    # Acceptable TOTP clock drift in seconds. Codes from (now - leeway) through (now + leeway)
-    # are accepted. 0 disables leeway (exact match only). MUST be lower than the 30s TOTP period;
-    # values >= 30 are clamped to 29.
-    totpLeewayInSeconds: 5
-```
+## Fragile on Neos upgrades
 
-## Tested 2FA apps
+- The 2FA login screen is a copy of the `Neos.Neos` login screen.
+- The passkey button is injected into the core login screen via `Configuration/Views.yaml` and a `@process` on
+  `Neos.Neos:Component.Login.Form`.
 
-Thx to @Sebobo @Benjamin-K for creating a list of supported and testet apps!
+## Development
 
-**iOS**:
-
-- Google Authenticator (used for development) ✅
-- Authy ✅
-- Microsoft Authenticator ✅
-- 1Password ✅
-
-**Android**:
-
-- Google Authenticator ✅
-- Microsoft Authenticator ✅
-- Authy ✅
-
-## How we did it
-
-- We introduced a new middleware `SecondFactorMiddleware` which handles 2FA on a Neos `Session` basis.
-  - This is an overview of the checks the `SecondFactorMiddleware` does for any request:
-
-    ```
-                            ┌─────────────────────────────┐
-                            │           Request           │
-                            └─────────────────────────────┘
-                                           ▼
-                                ... middleware chain ...
-                                           ▼
-                            ┌───────────────────────────────┐
-                            │  SecurityEntryPointMiddleware │
-                            └───────────────────────────────┘
-                                           ▼
-            ┌───────────────────────────────────────────────────────────────────┐
-            │                     SecondFactorMiddleware                        │
-            │                                                                   │
-            │  ┌─────────────────────────────────────────────────────────────┐  │
-            │  │ 1. Skip, if no authentication tokens are present, because   │  │
-            │  │    we're not on a secured route.                            │  │
-            │  └─────────────────────────────────────────────────────────────┘  │
-            │  ┌─────────────────────────────────────────────────────────────┐  │
-            │  │ 2. Skip, if 'Neos.Backend:Backend' authentication token not │  │
-            │  │    present, because we only support second factors for Neos │  │
-            │  │    backend.                                                 │  │
-            │  └─────────────────────────────────────────────────────────────┘  │
-            │  ┌─────────────────────────────────────────────────────────────┐  │
-            │  │ 3. Skip, if 'Neos.Backend:Backend' authentication token is  │  │
-            │  │    not authenticated, because we need to be authenticated   │  │
-            │  │    with the authentication provider of                      │  │
-            │  │    'Neos.Backend:Backend' first.                            │  │
-            │  └─────────────────────────────────────────────────────────────┘  │
-            │  ┌─────────────────────────────────────────────────────────────┐  │
-            │  │ 4. Skip, if second factor is not set up for account and not │  │
-            │  │    enforced via settings.                                   │  │
-            │  └─────────────────────────────────────────────────────────────┘  │
-            │  ┌─────────────────────────────────────────────────────────────┐  │
-            │  │ 5. Skip, if second factor is already authenticated.         │  │
-            │  └─────────────────────────────────────────────────────────────┘  │
-            │  ┌─────────────────────────────────────────────────────────────┐  │
-            │  │ 6. Redirect to 2FA login, if second factor is set up for    │  │
-            │  │    account but not authenticated.                           │  │
-            │  │    Skip, if already on 2FA login route.                     │  │
-            │  └─────────────────────────────────────────────────────────────┘  │
-            │  ┌─────────────────────────────────────────────────────────────┐  │
-            │  │ 7. Redirect to 2FA setup, if second factor is not set up for│  │
-            │  │    account but is enforced by system.                       │  │
-            │  │    Skip, if already on 2FA setup route.                     │  │
-            │  └─────────────────────────────────────────────────────────────┘  │
-            │  ┌─────────────────────────────────────────────────────────────┐  │
-            │  │ X. Throw an error, because any check before should have     │  │
-            │  │    succeeded.                                               │  │
-            │  └─────────────────────────────────────────────────────────────┘  │
-            └───────────────────────────────────────────────────────────────────┘
-                                              ▼
-                                     ... middlewares ...
-
-    ```
-
-- **Passwordless passkey login** is a separate, opt-in mechanism that does *primary* authentication —
-  the middleware above is only a post-login gate. Because a Flow provider name maps to exactly one
-  token class, we did not try to make the username/password provider also accept a passkey. Instead
-  we added a parallel authentication provider + token (`WebAuthnPasswordlessProvider` /
-  `WebAuthnPasswordlessToken`), registered with **no request pattern** and **no entry point**.
-  - `PasswordlessLoginController` verifies the WebAuthn assertion, resolves the `Neos.Neos:Backend`
-    account from the assertion's user handle (the account's persistence id), sets the parallel token
-    to `AUTHENTICATION_SUCCESSFUL`, calls `securityContext->refreshTokens()` to persist it to the
-    session, and marks the package's 2FA session status `AUTHENTICATED`.
-  - It survives the redirect to `/neos` because `AuthenticationProviderManager` only re-runs
-    providers for tokens that are `AUTHENTICATION_NEEDED`, and the Neos backend uses
-    `authenticationStrategy: oneToken` — so a single authenticated token authenticates the request.
-    `UserService::getCurrentUser()` resolves the Neos user from the *account's party* regardless of
-    which provider authenticated it, so roles and the backend UI work normally.
-  - A user-verified passkey is inherently multi-factor, so the 2FA gate is satisfied in one tap
-    (passwordless login sets the 2FA session status `AUTHENTICATED`, which is check #5 above).
-  - The "Sign in with a passkey" button is injected into the core Neos login screen by overriding
-    `Neos.Neos:Component.Login.Form` (`renderer.@process`) plus a `Views.yaml` entry. The core login
-    is rendered by a plain `FusionView` that does not apply `fusion.autoInclude` and has no script
-    hook, so the (gated) button also emits its own `<script>` to load the ceremony JS. The XHR
-    endpoints are reachable thanks to a `Policy.yaml` grant.
-
-## When updating Neos, those part will likely crash:
-
-- the login screen for the second factor is a hard copy of the login screen from the `Neos.Neos` package
-  - just replaced the username/password form with the form for the second factor
-  - maybe has to be replaced when neos gets updated
-- the passwordless "Sign in with a passkey" button is injected into the **core** Neos login screen via
-  a `Views.yaml` override (pointing at `resource://Neos.Neos/Private/Fusion/Backend`) plus a
-  `@process` on `Neos.Neos:Component.Login.Form`. If Neos restructures its login Fusion or view
-  configuration, this injection may need to be re-aligned.
-- hopefully the rest of this package is solid enough to survive the next mayor Neos versions ;)
-
-## Why not ...?
-
-### Enhance the `UsernamePassword` authentication token
-
-> This actually has been the approach up until version 1.0.5.
-
-One issue with this is the fact, that we _want_ the user to be logged in with that token via the
-`PersistedUsernamePasswordProvider`, but at the same time to _not be logged in_ with that token as long as 2FA is
-not authenticated as well.
-We found it hard to find a secure way to model the 2FA setup solution when 2FA is enforced, but the user does not have a
-second factor enabled, yet.
-
-The middleware approach makes a clear distinction between "Logging in" and "Second Factor Authentication", while still
-being session based and unable to bypass.
-
-### Set the authenticationStrategy to `allTokens`
-
-The AuthenticationProviderManager requires to authorize all tokens at the same time otherwise, it will throw
-an Exception (see AuthenticationProviderManager Line 181
-
-```php
-if ($this->authenticationStrategy === Context::AUTHENTICATE_ALL_TOKENS) {
-    throw new AuthenticationRequiredException('Could not authenticate all tokens, but authenticationStrategy was set to "all".', 1222203912);
-}
-```
-
-)
-
-This leads to an error where the `AuthenticationProviderManager` throws exceptions before the user is able to enter any
-credentials. The `SecurityEntryPointMiddleware` catches those exceptions and redirects to the Neos Backend Login, which
-causes the same exception again. We get caught in an endless redirect.
-
-The [Neos Flow Security Documentation](https://flowframework.readthedocs.io/en/stable/TheDefinitiveGuide/PartIII/Security.html#multi-factor-authentication-strategy)
-suggests how to implement a multi-factor-authentication, but this method seems like it was never tested. At the moment of writing
-it seems like the `authenticationStrategy: allTokens` flag is broken and not usable.
-
-## Contributing
-
-### Testing
-
-The package ships with end-to-end tests built on [Playwright](https://playwright.dev) and written in Gherkin syntax via [playwright-bdd](https://vitalets.github.io/playwright-bdd/).
-
-#### Running the tests
-
-Tests require Docker and Node.js. All Makefile targets are run from `Tests/E2E/`. Run the initial setup once — it builds the SUT images and installs the test dependencies (if [nvm](https://github.com/nvm-sh/nvm) is available it will automatically switch to the Node version from `.nvmrc`):
+E2E tests (Playwright + playwright-bdd, Neos 8 and 9 in Docker), run from `Tests/E2E/`:
 
 ```bash
-make setup          # build SUT images + install test dependencies
-make setup-test     # only install node dependencies, playwright and generate BDD files
+make setup   # once
+make test    # all variants; `make help` lists the rest
 ```
 
-Re-generate Playwright spec files whenever a `.feature` file changes:
-```bash
-make generate-bdd-files
-```
-
-Run the tests:
-
-```bash
-make test                   # run all tests (neos8 + neos9, all configurations)
-
-make test-neos8             # run all neos8 tests
-make test-neos8-defaults    # default configuration only
-make test-neos8-enforce-all # enforceTwoFactorAuthentication: true
-make test-neos8-enforce-role
-make test-neos8-enforce-provider
-make test-neos8-passwordless # webAuthn.passwordlessLoginEnabled: true
-
-make test-neos9             # same targets for neos9 / PHP 8.5
-
-make sut-prune              # tear down all docker compose environments and remove volumes
-```
-
-Run `make help` to see all available targets.
-
-#### Debugging tests
-To debug a test, run the test from `Tests/E2E/` with flags like this:
-
-- `npm run test:neos8:enforce-all -- --debug` - to run the test in headed mode with Playwright Inspector
-- `npm run test:neos8:enforce-all -- --ui` - to run the test in headed mode with Playwright Test Runner UI
-
-If you just want to see the test running in the browser just `npm run test:neos8:enforce-all -- --headed`.
-
-> While debugging you can also enter the SUT with `make enter-sut-neos8` and `make enter-sut-neos9` respectively.
->
-> You can even the tests you want to debug with `npm run test:neos8:enforce-all -- --grep @debug` and adding the `@debug` tag to the scenario you want to debug. But using the --ui flag is usually more convenient for debugging.
-
-#### System under test (SUT)
-
-There are two docker compose environments in `Tests/system_under_test/`:
-
-- `neos8/` — Neos with PHP 8.2
-- `neos9/` — Neos with PHP 8.5
-
-Both are built from the repository root as the Docker build context, so the local package source is copied into the container and installed via a Composer path repository. This means every test run tests the _current working tree_ of the package, not a published version.
-
-#### Configuration variants
-
-The `FLOW_CONTEXT` environment variable is passed into the docker compose environment via variable substitution, and Flow's hierarchical configuration loading picks up the corresponding `Settings.yaml` from the SUT:
-
-| Playwright tag | `FLOW_CONTEXT` | What is tested |
-|---|---|---|
-| `@default-context` | `Production/E2E-SUT` | No enforcement — 2FA is optional |
-| `@enforce-for-all` | `Production/E2E-SUT/EnforceForAll` | `enforceTwoFactorAuthentication: true` |
-| `@enforce-for-role` | `Production/E2E-SUT/EnforceForRole` | Enforcement scoped to `Neos.Neos:Administrator` |
-| `@enforce-for-provider` | `Production/E2E-SUT/EnforceForProvider` | Enforcement scoped to an authentication provider |
-| `@passwordless` | `Production/E2E-SUT/Passwordless` | `webAuthn.passwordlessLoginEnabled: true` — passwordless passkey login |
-| `@user-management` | `Production/E2E-SUT/UserManagement` | User management enabled — mails are read from the SUT's Mailpit (`localhost:8025`) |
-| `@username-is-email` | `Production/E2E-SUT/UserManagement/UsernameIsEmail` | User management with `usernameIsEmail: true` — the username follows a validated email change |
-
-#### Test isolation
-
-Each scenario starts with a clean state. An `AfterScenario` hook runs after every scenario to:
-
-1. Log the browser out via a POST to `/neos/logout`
-2. Delete all Neos users (`./flow user:delete --assume-yes '*'`)
-
-Deleting all users also cascades to their 2FA devices, so no separate cleanup step is needed. Users and devices are re-created by the Background steps at the start of each scenario.
-
-#### Design decisions
-
-**Gherkin / BDD over plain Playwright specs** — the feature files document the intended behaviour of each configuration variant at a level that is readable without knowing the implementation. The generated Playwright spec files (`.features-gen/`) are not committed; they are re-generated by `bddgen` before each test run.
-
-**UI-only device enrolment** — 2FA devices are enrolled through the browser UI (the backend module or the setup page) rather than a dedicated CLI command. This avoids coupling the tests to internal persistence details and exercises the same enrolment path a real user would take. The `deviceNameSecretMap` in `helpers/state.ts` carries TOTP secrets across steps within a scenario (e.g. from the enrolment step to the OTP entry step).
-
-**Sequential execution** — tests run with `workers: 1` and `fullyParallel: false` because all scenarios share a single running SUT container and a single database. Running them in parallel would cause interference between scenarios.
-
-**User creation via `docker exec`** — Neos user creation is done through the Flow CLI (`./flow user:create`) rather than the UI because the UI path is not part of what this package tests, and using the CLI is faster and more reliable for setup.
+Details: [Tests/E2E/README.md](Tests/E2E/README.md).

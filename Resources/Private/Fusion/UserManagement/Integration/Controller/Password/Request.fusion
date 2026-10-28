@@ -1,9 +1,9 @@
-Sandstorm.NeosTwoFactorAuthentication.UserManagement.PasswordController.request = Sandstorm.NeosTwoFactorAuthentication:UserManagement.Page.PublicPage {
+Sandstorm.BackendUserManagement.UserManagement.PasswordController.request = Sandstorm.BackendUserManagement:UserManagement.Page.PublicPage {
     body = afx`
         <Neos.Fusion.Form:Form form.target.action="requestSubmit" attributes.class="neos-user-management__form">
             <fieldset>
-                <label for="usernameOrEmail" class="neos-two-factor__login-label">
-                    {I18n.id('password.request.label').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+                <label for="usernameOrEmail" class="neos-backend-user-management__login-label">
+                    {I18n.id('password.request.label').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
                 </label>
                 <div class="neos-controls">
                     <Neos.Fusion.Form:Input
@@ -12,12 +12,12 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.PasswordController.request 
                         attributes.required="required"
                         attributes.autofocus={true}
                         attributes.autocomplete="username"
-                        attributes.placeholder={I18n.id('password.request.placeholder').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+                        attributes.placeholder={I18n.id('password.request.placeholder').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
                     />
                 </div>
                 <div class="neos-actions">
                     <Neos.Fusion.Form:Button attributes.class="neos-button neos-login-btn" attributes.data-test-id="request-password-reset">
-                        {I18n.id('password.request.submit').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+                        {I18n.id('password.request.submit').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
                     </Neos.Fusion.Form:Button>
                 </div>
             </fieldset>

@@ -38,7 +38,7 @@ Then('I should see the generic password reset confirmation', async ({ page }) =>
 
 Then('I should see that I requested too many password resets', async ({ page }) => {
   await expect(page.locator('#usernameOrEmail')).toBeVisible();
-  await expect(page.locator('.neos-two-factor-flashmessage-error')).toBeVisible();
+  await expect(page.locator('.neos-backend-user-management__flashmessage--error')).toBeVisible();
 });
 
 Then('{string} should receive {int} mail(s)', async ({}, recipient: string, count: number) => {
