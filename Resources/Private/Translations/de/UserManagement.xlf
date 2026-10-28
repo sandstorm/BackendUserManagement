@@ -30,6 +30,10 @@
         <source>Reset password</source>
         <target>Passwort zurücksetzen</target>
       </trans-unit>
+      <trans-unit id="password.request.throttled" xml:space="preserve">
+        <source>Too many requests. Please wait a few minutes before requesting another link. If you already requested one, please also check your spam folder.</source>
+        <target>Zu viele Anfragen. Bitte warten Sie einige Minuten, bevor Sie einen neuen Link anfordern. Falls Sie bereits einen Link angefordert haben, prüfen Sie bitte auch Ihren Spam-Ordner.</target>
+      </trans-unit>
       <trans-unit id="password.request.sent" xml:space="preserve">
         <source>If an account exists for your input, we have sent you an email with a link to set a new password. Please also check your spam folder.</source>
         <target>Falls zu Ihrer Eingabe ein Konto existiert, haben wir Ihnen eine E-Mail mit einem Link zum Setzen eines neuen Passworts gesendet. Bitte prüfen Sie auch Ihren Spam-Ordner.</target>

@@ -42,7 +42,10 @@ class PasswordController extends AbstractPublicController
 
     public function requestSubmitAction(string $usernameOrEmail = ''): void
     {
-        $this->passwordResetRequestHandler->handle($usernameOrEmail, $this->clientIp());
+        if (!$this->passwordResetRequestHandler->handle($usernameOrEmail, $this->clientIp())) {
+            $this->addFlashMessage($this->translate('password.request.throttled'), '', Message::SEVERITY_ERROR);
+            $this->redirect('request');
+        }
         // always the same answer - never reveal whether an account exists
         $this->redirect('requestSent');
     }

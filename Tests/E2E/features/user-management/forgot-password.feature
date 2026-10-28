@@ -63,5 +63,12 @@ Feature: Forgot password
     And I request a password reset for "jane"
     And I request a password reset for "jane"
     And I request a password reset for "jane"
-    Then I should see the generic password reset confirmation
+    Then I should see that I requested too many password resets
     And "jane@example.com" should receive 3 mails
+
+  Scenario: Throttling does not reveal whether an account exists
+    When I request a password reset for "nobody@example.com"
+    And I request a password reset for "nobody@example.com"
+    And I request a password reset for "nobody@example.com"
+    And I request a password reset for "nobody@example.com"
+    Then I should see that I requested too many password resets

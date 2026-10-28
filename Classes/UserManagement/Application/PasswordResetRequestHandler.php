@@ -51,11 +51,15 @@ class PasswordResetRequestHandler
     #[Flow\InjectConfiguration(path: 'userManagement.throttle')]
     protected array $throttleSettings;
 
-    public function handle(string $usernameOrEmail, string $clientIp): void
+    /**
+     * @return bool false if the request was throttled. Safe to show: the throttle counts every input, whether an
+     *              account exists or not.
+     */
+    public function handle(string $usernameOrEmail, string $clientIp): bool
     {
         $input = trim($usernameOrEmail);
         if ($input === '') {
-            return;
+            return true;
         }
 
         // IP first: a request rejected per IP must not use up the identifier's limit - otherwise a single client
@@ -71,12 +75,13 @@ class PasswordResetRequestHandler
         );
         if (!$allowed) {
             $this->securityLogger->notice('Sandstorm/NeosTwoFactorAuthentication: forgot password request throttled.', ['clientIp' => $clientIp]);
-            return;
+            return false;
         }
 
         foreach ($this->resolveAccountsByRecipient($input) as $recipient => $accounts) {
             $this->sendMail($recipient, $accounts);
         }
+        return true;
     }
 
     /**

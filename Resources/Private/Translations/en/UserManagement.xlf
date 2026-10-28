@@ -23,6 +23,9 @@
       <trans-unit id="password.request.submit" xml:space="preserve">
         <source>Reset password</source>
       </trans-unit>
+      <trans-unit id="password.request.throttled" xml:space="preserve">
+        <source>Too many requests. Please wait a few minutes before requesting another link. If you already requested one, please also check your spam folder.</source>
+      </trans-unit>
       <trans-unit id="password.request.sent" xml:space="preserve">
         <source>If an account exists for your input, we have sent you an email with a link to set a new password. Please also check your spam folder.</source>
       </trans-unit>

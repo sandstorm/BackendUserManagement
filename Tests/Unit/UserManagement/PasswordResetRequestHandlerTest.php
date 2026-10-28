@@ -110,7 +110,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
      */
     public function usernameSendsMailToTheUsersEmail(): void
     {
-        $this->handler->handle('john', '127.0.0.1');
+        self::assertTrue($this->handler->handle('john', '127.0.0.1'));
 
         self::assertSame([['recipient' => 'john@example.com', 'links' => [['username' => 'john', 'token' => 'token-john']]]], $this->sentMails);
     }
@@ -132,8 +132,9 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
      */
     public function unknownInputSendsNoMail(): void
     {
-        $this->handler->handle('nobody@example.com', '127.0.0.1');
-        $this->handler->handle('nobody', '127.0.0.1');
+        // not throttled either - the answer must not differ from the one for an existing account
+        self::assertTrue($this->handler->handle('nobody@example.com', '127.0.0.1'));
+        self::assertTrue($this->handler->handle('nobody', '127.0.0.1'));
         $this->handler->handle('   ', '127.0.0.1');
 
         self::assertSame([], $this->sentMails);
@@ -169,8 +170,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
     {
         $this->throttleAllows = false;
 
-        $this->handler->handle('john', '127.0.0.1');
-
+        self::assertFalse($this->handler->handle('john', '127.0.0.1'));
         self::assertSame([], $this->sentMails);
     }
 
