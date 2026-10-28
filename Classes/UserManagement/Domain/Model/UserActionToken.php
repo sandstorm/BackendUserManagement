@@ -25,7 +25,7 @@ class UserActionToken
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     protected Account $account;
 
-    #[ORM\Column(length: 64, unique: true)]
+    #[ORM\Column(name: 'token_hash', length: 64, unique: true)]
     protected string $tokenHash;
 
     #[ORM\Column(length: 40)]
@@ -34,15 +34,16 @@ class UserActionToken
     /**
      * The token is only valid while the user's primary email is still this address.
      */
+    #[ORM\Column(name: 'email_at_issue')]
     protected string $emailAtIssue;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     protected \DateTimeImmutable $createdAt;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(name: 'expires_at', type: 'datetime_immutable')]
     protected \DateTimeImmutable $expiresAt;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[ORM\Column(name: 'consumed_at', type: 'datetime_immutable', nullable: true)]
     protected ?\DateTimeImmutable $consumedAt = null;
 
     public function __construct(
