@@ -15,7 +15,7 @@ use \DateTimeImmutable;
  * stored; the plaintext exists solely in the mail.
  */
 #[Flow\Entity]
-#[ORM\Table(name: 'sandstorm_neostwofactorauthentication_useractiontoken')]
+#[ORM\Table(name: 'sandstorm_backendusermanagement_useractiontoken')]
 class UserActionToken
 {
     /**
