@@ -203,6 +203,9 @@
       <trans-unit id="field.email" xml:space="preserve">
         <source>Email</source>
       </trans-unit>
+      <trans-unit id="field.emailOrUsername" xml:space="preserve">
+        <source>Email/Username</source>
+      </trans-unit>
       <trans-unit id="field.roles" xml:space="preserve">
         <source>Roles</source>
       </trans-unit>

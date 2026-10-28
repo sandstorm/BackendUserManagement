@@ -270,6 +270,10 @@
         <source>Email</source>
         <target>E-Mail</target>
       </trans-unit>
+      <trans-unit id="field.emailOrUsername" xml:space="preserve">
+        <source>Email/Username</source>
+        <target>E-Mail/Benutzername</target>
+      </trans-unit>
       <trans-unit id="field.roles" xml:space="preserve">
         <source>Roles</source>
         <target>Rollen</target>

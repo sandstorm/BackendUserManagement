@@ -109,6 +109,7 @@ class ModuleController extends AbstractModuleController
             'authenticationProviderName' => $authenticationProviderName,
             'providers' => $this->simpleUserFinder->getManagedProviders(),
             'currentUserId' => $this->currentUserId(),
+            'usernameIsEmail' => $this->usernameIsEmail,
             'mailConfigurationWarning' => $this->mailConfigurationWarning(),
             'flashMessages' => $this->flushFlashMessages(),
         ]);

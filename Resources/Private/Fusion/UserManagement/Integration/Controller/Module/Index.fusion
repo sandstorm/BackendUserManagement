@@ -41,8 +41,8 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.index = Sa
                         <tr>
                             <th><span class="neos-user-management__visually-hidden"><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="module.index.select" /></span></th>
                             <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.name" /></th>
-                            <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.username" /></th>
-                            <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.email" /></th>
+                            <th @if={!usernameIsEmail}><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.username" /></th>
+                            <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id={usernameIsEmail ? 'field.emailOrUsername' : 'field.email'} /></th>
                             <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.roles" /></th>
                             <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.active" /></th>
                             <th><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="field.secondFactors" /></th>
@@ -52,7 +52,7 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.index = Sa
                     </thead>
                     <tbody>
                         <Neos.Fusion:Loop items={users} itemName="user">
-                            <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.UserRow user={user} isSelf={user.userId == currentUserId} />
+                            <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.UserRow user={user} isSelf={user.userId == currentUserId} usernameIsEmail={usernameIsEmail} />
                         </Neos.Fusion:Loop>
                     </tbody>
                 </table>
@@ -74,6 +74,10 @@ Sandstorm.NeosTwoFactorAuthentication.UserManagement.ModuleController.index = Sa
 prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.UserRow) < prototype(Neos.Fusion:Component) {
     user = null
     isSelf = false
+    usernameIsEmail = false
+
+    // with usernameIsEmail, only usernames differing from the email are shown (e.g. accounts created before)
+    otherUsernames = ${Array.filter(this.user.accountIdentifiers, username => String.toLowerCase(username) != String.toLowerCase(this.user.primaryEmail))}
 
     editUri = Neos.Fusion:UriBuilder {
         action = 'edit'
@@ -92,11 +96,14 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.UserRow
                 />
             </td>
             <td><a href={props.editUri}>{String.htmlSpecialChars(props.user.displayName)}</a></td>
-            <td>{String.htmlSpecialChars(Array.join(props.user.accountIdentifiers, ', '))}</td>
+            <td @if={!props.usernameIsEmail}>{String.htmlSpecialChars(Array.join(props.user.accountIdentifiers, ', '))}</td>
             <td>
                 {props.user.primaryEmail ? String.htmlSpecialChars(props.user.primaryEmail) : '-'}
                 <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.EmailBadge @if={props.user.primaryEmail}
                                                                                            approved={props.user.emailApproved}/>
+                <div @if={props.usernameIsEmail && Array.length(props.otherUsernames) > 0}>
+                    {String.htmlSpecialChars(Array.join(props.otherUsernames, ', '))}
+                </div>
             </td>
             <td>{Array.join(props.user.roleIdentifiers, ', ')}</td>
             <td>
