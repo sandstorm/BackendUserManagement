@@ -35,6 +35,13 @@ use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
 class ModuleController extends AbstractModuleController
 {
     /**
+     * Read-only actions. All others change state and are POST only: Flow skips the CSRF check for GET requests
+     * ({@see \Neos\Flow\Security\RequestPattern\CsrfProtection::matchRequest()}), and module actions are reachable by
+     * GET - via the last URI segment ({@see \Neos\Neos\Routing\BackendModuleRoutePartHandler}) or `moduleArguments[@action]`.
+     */
+    private const SAFE_ACTIONS = ['index', 'new', 'edit', 'confirmDelete'];
+
+    /**
      * @var string
      */
     protected $defaultViewObjectName = FusionView::class;
@@ -81,6 +88,17 @@ class ModuleController extends AbstractModuleController
 
     #[Flow\InjectConfiguration(package: 'Neos.SymfonyMailer', path: 'mailer.dsn')]
     protected ?string $mailerDsn = null;
+
+    protected function initializeAction(): void
+    {
+        parent::initializeAction();
+        if (!in_array($this->request->getControllerActionName(), self::SAFE_ACTIONS, true)
+            && $this->request->getHttpRequest()->getMethod() !== 'POST'
+        ) {
+            $this->response->setHttpHeader('Allow', 'POST');
+            $this->throwStatus(405);
+        }
+    }
 
     public function indexAction(string $searchTerm = '', string $authenticationProviderName = ''): void
     {
