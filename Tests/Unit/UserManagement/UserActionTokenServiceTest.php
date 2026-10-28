@@ -1,16 +1,16 @@
 <?php
 
-namespace Sandstorm\NeosTwoFactorAuthentication\Tests\Unit\UserManagement;
+namespace Sandstorm\BackendUserManagement\Tests\Unit\UserManagement;
 
 use Neos\Flow\Security\Account;
 use Neos\Flow\Tests\UnitTestCase;
 use Neos\Neos\Domain\Model\User;
 use Neos\Party\Domain\Model\ElectronicAddress;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\SimpleUserFinder;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserActionTokenService;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Model\UserActionToken;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Repository\UserActionTokenRepository;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Sandstorm\BackendUserManagement\UserManagement\Application\SimpleUserFinder;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserActionTokenService;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Model\UserActionToken;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Repository\UserActionTokenRepository;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 
 class UserActionTokenServiceTest extends UnitTestCase
 {

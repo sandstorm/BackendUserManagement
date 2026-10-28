@@ -1,4 +1,4 @@
-prototype(Sandstorm.NeosTwoFactorAuthentication:Component.FlashMessages) < prototype(Neos.Fusion:Component) {
+prototype(Sandstorm.BackendUserManagement:Component.FlashMessages) < prototype(Neos.Fusion:Component) {
     flashMessages = ${[]}
 
     renderer = afx`

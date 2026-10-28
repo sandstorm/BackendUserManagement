@@ -114,7 +114,7 @@ export class SecondFactorSetupPage {
   }
 
   isMethodPickerVisible() {
-    return this.page.locator('.neos-two-factor__method-picker').isVisible();
+    return this.page.locator('.neos-second-factor__method-picker').isVisible();
   }
 
   /** The method-picker option (link) with the given accessible name. */
@@ -124,12 +124,12 @@ export class SecondFactorSetupPage {
 
   /** The "or" separator rendered inside the method picker (between option groups). */
   methodSeparator() {
-    return this.page.locator('.neos-two-factor__method-picker .neos-two-factor__or-separator');
+    return this.page.locator('.neos-second-factor__method-picker .neos-second-factor__or-separator');
   }
 
   /** The enforcement-explanation notice shown above the method picker on the enforced-setup screen. */
   enforcedNotice() {
-    return this.page.locator('.neos-two-factor__enforced-notice');
+    return this.page.locator('.neos-backend-user-management__notice');
   }
 
   async chooseTotp() {

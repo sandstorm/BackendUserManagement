@@ -1,10 +1,10 @@
 <?php
 
-namespace Sandstorm\NeosTwoFactorAuthentication\Tests\Unit\UserManagement;
+namespace Sandstorm\BackendUserManagement\Tests\Unit\UserManagement;
 
 use Neos\Flow\Tests\UnitTestCase;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto\SimpleAccount;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto\SimpleUser;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\SimpleAccount;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\SimpleUser;
 
 class SimpleUserTest extends UnitTestCase
 {

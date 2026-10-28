@@ -1,0 +1,13 @@
+Sandstorm.BackendUserManagement.SecondFactor.LoginController.setupWebAuthn = Sandstorm.BackendUserManagement:SecondFactor.Page.SetupPage {
+    site = ${site}
+    styles = ${styles}
+    scripts = ${scripts}
+    username = ${username}
+    flashMessages = ${flashMessages}
+
+    body = Sandstorm.BackendUserManagement:SecondFactor.Component.SetupWebAuthnStep {
+        flashMessages = ${flashMessages}
+        redirectUrl = ${redirectUrl}
+        discoverable = ${discoverable}
+    }
+}

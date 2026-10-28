@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Controller;
+namespace Sandstorm\BackendUserManagement\UserManagement\Controller;
 
 use Neos\Flow\Annotations as Flow;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserActionTokenService;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserCommandService;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto\UsernameChange;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserActionTokenService;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserCommandService;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\UsernameChange;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 
 /**
  * Confirms that a user has access to their primary email. GET only shows a button (mail scanners prefetch links),

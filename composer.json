@@ -1,7 +1,7 @@
 {
-    "description": "",
+    "description": "Backend User Management Package for Neos, includes 2FA, password reset, new user management UI and more",
     "type": "neos-package",
-    "name": "sandstorm/neostwofactorauthentication",
+    "name": "sandstorm/backendusermanagement",
     "license": [
         "MIT"
     ],
@@ -26,14 +26,17 @@
         "symfony/rate-limiter": "^6.4 | ^7.0 | ^8.0",
         "symfony/lock": "^6.4 | ^7.0 | ^8.0"
     },
+    "conflict": {
+        "sandstorm/neostwofactorauthentication": "*"
+    },
     "autoload": {
         "psr-4": {
-            "Sandstorm\\NeosTwoFactorAuthentication\\": "Classes/"
+            "Sandstorm\\BackendUserManagement\\": "Classes/"
         }
     },
     "extra": {
         "neos": {
-            "package-key": "Sandstorm.NeosTwoFactorAuthentication"
+            "package-key": "Sandstorm.BackendUserManagement"
         },
         "applied-flow-migrations": [
             "Neos.Twitter.Bootstrap-20161124204912",
@@ -52,7 +55,8 @@
             "Neos.Flow-20201207104500",
             "Neos.Neos-20220318111600",
             "Neos.Flow-20220318174300",
-            "Neos.Fusion-20220326120900"
+            "Neos.Fusion-20220326120900",
+            "Sandstorm.BackendUserManagement-20261028120100"
         ]
     },
     "config": {

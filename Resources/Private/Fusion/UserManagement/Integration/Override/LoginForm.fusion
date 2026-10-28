@@ -4,6 +4,6 @@ prototype(Neos.Neos:Component.Login.Form) {
     renderer.@process.appendForgotPasswordLink = Neos.Fusion:Join {
         @position = 'start'
         loginForm = ${value}
-        forgotPasswordLink = Sandstorm.NeosTwoFactorAuthentication:UserManagement.Component.ForgotPasswordLink
+        forgotPasswordLink = Sandstorm.BackendUserManagement:UserManagement.Component.ForgotPasswordLink
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application;
+namespace Sandstorm\BackendUserManagement\UserManagement\Application;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
@@ -12,9 +12,9 @@ use Neos\Neos\Domain\Model\User;
 use Neos\Neos\Domain\Repository\UserRepository;
 use Neos\Party\Domain\Model\ElectronicAddress;
 use Neos\Party\Domain\Service\PartyService;
-use Sandstorm\NeosTwoFactorAuthentication\Domain\Repository\SecondFactorRepository;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto\SimpleAccount;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto\SimpleUser;
+use Sandstorm\BackendUserManagement\SecondFactor\Domain\Repository\SecondFactorRepository;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\SimpleAccount;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\SimpleUser;
 
 /**
  * Read side of the user management. Everything that needs to know how Neos stores users

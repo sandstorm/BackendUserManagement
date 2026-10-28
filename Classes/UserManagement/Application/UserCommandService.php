@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application;
+namespace Sandstorm\BackendUserManagement\UserManagement\Application;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
@@ -14,9 +14,9 @@ use Neos\Neos\Domain\Service\UserService;
 use Neos\Party\Domain\Model\ElectronicAddress;
 use Neos\Party\Domain\Model\PersonName;
 use Psr\Log\LoggerInterface;
-use Sandstorm\NeosTwoFactorAuthentication\Domain\Repository\SecondFactorRepository;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto\UsernameChange;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Sandstorm\BackendUserManagement\SecondFactor\Domain\Repository\SecondFactorRepository;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\UsernameChange;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 
 /**
  * Write side of the user management, wrapping Neos' UserService and the Party model. See {@see SimpleUserFinder}.
@@ -335,7 +335,7 @@ class UserCommandService
         $oldUsername = $account->getAccountIdentifier();
         $existingAccount = $this->accountRepository->findByAccountIdentifierAndAuthenticationProviderName($newUsername, $account->getAuthenticationProviderName());
         if (($existingAccount !== null && $existingAccount !== $account) || !$this->neos8PersonalWorkspaceMigrator->canMigrate($oldUsername, $newUsername)) {
-            $this->securityLogger->warning(sprintf('Sandstorm/NeosTwoFactorAuthentication: username "%s" not changed to "%s", the name is taken.', $oldUsername, $newUsername));
+            $this->securityLogger->warning(sprintf('Sandstorm/BackendUserManagement: username "%s" not changed to "%s", the name is taken.', $oldUsername, $newUsername));
             return new UsernameChange($oldUsername, $newUsername, false);
         }
 
@@ -367,7 +367,7 @@ class UserCommandService
         try {
             $this->userMailer->sendUsernameChanged($recipient, $user, $changed);
         } catch (\Throwable $e) {
-            $this->securityLogger->error('Sandstorm/NeosTwoFactorAuthentication: could not send username changed mail: ' . $e->getMessage());
+            $this->securityLogger->error('Sandstorm/BackendUserManagement: could not send username changed mail: ' . $e->getMessage());
         }
     }
 

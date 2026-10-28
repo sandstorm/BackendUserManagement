@@ -1,0 +1,29 @@
+Sandstorm.BackendUserManagement.SecondFactor.ModuleController.newWebAuthn = Sandstorm.BackendUserManagement:Page.DefaultPage {
+    body = Sandstorm.BackendUserManagement:BodyLayout.Default {
+        flashMessages = ${flashMessages}
+
+        teaserTitle = ${discoverable
+            ? I18n.id('module.newWebAuthn.title').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()
+            : I18n.id('module.newWebAuthn.titleSecondFactor').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+
+        content = Neos.Fusion:Component {
+            discoverable = ${discoverable}
+            redirectUrl = Neos.Fusion:UriBuilder {
+                package = 'Sandstorm.BackendUserManagement'
+                subpackage = 'SecondFactor'
+                controller = 'Module'
+                action = 'index'
+            }
+            renderer = afx`
+                <p class="neos-second-factor__user-context">
+                    {I18n.id('module.new.user-context').package('Sandstorm.BackendUserManagement').source('SecondFactor').arguments([currentUser ? currentUser.name.fullName : accountIdentifier]).translate()}
+                </p>
+                <Sandstorm.BackendUserManagement:SecondFactor.Component.SetupWebAuthnStep
+                    flashMessages={flashMessages}
+                    redirectUrl={props.redirectUrl}
+                    discoverable={props.discoverable}
+                />
+            `
+        }
+    }
+}

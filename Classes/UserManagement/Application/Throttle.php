@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application;
+namespace Sandstorm\BackendUserManagement\UserManagement\Application;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cache\CacheManager;
@@ -19,7 +19,7 @@ use Symfony\Component\RateLimiter\Storage\StorageInterface;
 #[Flow\Scope('singleton')]
 class Throttle
 {
-    public const CACHE_IDENTIFIER = 'Sandstorm_NeosTwoFactorAuthentication_Throttle';
+    public const CACHE_IDENTIFIER = 'Sandstorm_BackendUserManagement_Throttle';
 
     #[Flow\Inject]
     protected CacheManager $cacheManager;
@@ -39,7 +39,7 @@ class Throttle
     {
         $rateLimiterFactory = new RateLimiterFactory(
             [
-                'id' => 'Sandstorm.NeosTwoFactorAuthentication',
+                'id' => 'Sandstorm.BackendUserManagement',
                 'policy' => 'sliding_window',
                 'limit' => $limit,
                 'interval' => self::durationInSeconds($window) . ' seconds',

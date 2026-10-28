@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain;
+namespace Sandstorm\BackendUserManagement\UserManagement\Domain;
 
 /**
  * What a mailed link allows its holder to do. Kept as a single value per token; a Keycloak-like list of

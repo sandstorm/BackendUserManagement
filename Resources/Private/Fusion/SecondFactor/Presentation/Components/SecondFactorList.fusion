@@ -1,0 +1,92 @@
+prototype(Sandstorm.BackendUserManagement:SecondFactor.Component.SecondFactorList) < prototype(Neos.Fusion:Component) {
+    factorsAndPerson = ''
+
+    renderer = afx`
+        <table class="neos-table">
+            <thead>
+            <tr>
+                <th>{I18n.id('module.index.list.header.username').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}</th>
+                <th>{I18n.id('module.index.list.header.type').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}</th>
+                <th>{I18n.id('module.index.list.header.name').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}</th>
+                <th>{I18n.id('module.index.list.header.creationDate').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}</th>
+                <th>&nbsp;</th>
+            </tr>
+            </thead>
+            <tbody>
+            <Neos.Fusion:Loop
+                items={props.factorsAndPerson}
+                itemName="factorAndPerson"
+                @children="itemRenderer"
+                iterationName="iterator"
+            >
+                <Sandstorm.BackendUserManagement:SecondFactor.Component.SecondFactorList.Entry
+                    factorAndPerson={factorAndPerson}
+                    iterator={iterator}
+                />
+            </Neos.Fusion:Loop>
+            </tbody>
+        </table>
+    `
+}
+
+prototype(Sandstorm.BackendUserManagement:SecondFactor.Component.SecondFactorList.Entry) < prototype(Neos.Fusion:Component) {
+    factorAndPerson = ''
+    iterator = ''
+
+    editUri = Neos.Fusion:UriBuilder {
+        action = 'edit'
+        arguments = Neos.Fusion:DataStructure {
+            secondFactor = ${factorAndPerson.secondFactor}
+        }
+    }
+
+    renderer = afx`
+        <tr>
+            <td>{props.factorAndPerson.user.name.fullName} ({props.factorAndPerson.secondFactor.account.accountIdentifier})</td>
+            <td>
+                <span class={'neos-second-factor__badge ' + (props.factorAndPerson.secondFactor.discoverable ? 'neos-second-factor__badge--passkey' : 'neos-second-factor__badge--second-factor')}>
+                    {props.factorAndPerson.secondFactor.typeAsName}
+                </span>
+            </td>
+            <td>{props.factorAndPerson.secondFactor.name == null ? '-' : props.factorAndPerson.secondFactor.name}</td>
+            <td>{props.factorAndPerson.secondFactor.creationDate == null ? '-' : Date.format(props.factorAndPerson.secondFactor.creationDate, 'Y-m-d H:i')}</td>
+            <td>
+                <button class="neos-button neos-button-danger" data-toggle="modal"
+                        href={'#user-' + props.iterator.index} title={I18n.id('module.index.list.action.delete').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()} aria-label={I18n.id('module.index.list.action.delete').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()} data-neos-toggle="tooltip">
+                    <i class="fas fa-trash-alt icon-white"></i>
+                </button>
+
+                <div class="neos-hide" id={'user-' + props.iterator.index}>
+                    <div class="neos-modal-centered">
+                        <div class="neos-modal-content">
+                            <div class="neos-modal-header">
+                                <button type="button" class="neos-close neos-button" data-dismiss="modal" aria-label={I18n.id('module.index.delete.close').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}></button>
+                                <div class="neos-header">
+                                    {I18n.id('module.index.delete.header').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                                </div>
+                                <div>
+                                    <div class="neos-subheader">
+                                        <p>
+                                            {I18n.id('module.index.delete.text').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="neos-modal-footer">
+                                <a href="#" class="neos-button" data-dismiss="modal">
+                                    {I18n.id('module.index.delete.cancel').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                                </a>
+                                <Neos.Fusion.Form:Form form.target.action="delete" attributes.class="neos-inline" form.target.arguments={{secondFactor: props.factorAndPerson.secondFactor}}>
+                                    <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-danger" attributes.data-test-id="confirm-delete">
+                                        {I18n.id('module.index.delete.confirm').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                                    </Neos.Fusion.Form:Button>
+                                </Neos.Fusion.Form:Form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="neos-modal-backdrop neos-in"></div>
+                </div>
+            </td>
+        </tr>
+    `
+}

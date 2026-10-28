@@ -1,15 +1,15 @@
 # Variables: name
-Sandstorm.NeosTwoFactorAuthentication.UserManagement.Mail.testMail {
-    subject = Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate {
+Sandstorm.BackendUserManagement.UserManagement.Mail.testMail {
+    subject = Sandstorm.BackendUserManagement:UserManagement.Translate {
         id = 'mail.testMail.subject'
     }
 
-    html = Sandstorm.NeosTwoFactorAuthentication:UserManagement.Mail.HtmlLayout {
+    html = Sandstorm.BackendUserManagement:UserManagement.Mail.HtmlLayout {
         content = afx`
-            <p><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="mail.greeting" arguments={[String.htmlSpecialChars(name)]} /></p>
-            <p><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="mail.testMail.body" /></p>
+            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.greeting" arguments={[String.htmlSpecialChars(name)]} /></p>
+            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.testMail.body" /></p>
         `
     }
 
-    text = ${I18n.id('mail.greeting').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').arguments([name]).translate() + String.chr(10) + String.chr(10) + I18n.id('mail.testMail.body').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()}
+    text = ${I18n.id('mail.greeting').package('Sandstorm.BackendUserManagement').source('UserManagement').arguments([name]).translate() + String.chr(10) + String.chr(10) + I18n.id('mail.testMail.body').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
 }

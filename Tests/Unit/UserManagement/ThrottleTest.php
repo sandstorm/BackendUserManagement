@@ -1,9 +1,9 @@
 <?php
 
-namespace Sandstorm\NeosTwoFactorAuthentication\Tests\Unit\UserManagement;
+namespace Sandstorm\BackendUserManagement\Tests\Unit\UserManagement;
 
 use Neos\Flow\Tests\UnitTestCase;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\Throttle;
+use Sandstorm\BackendUserManagement\UserManagement\Application\Throttle;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\Store\InMemoryStore;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;

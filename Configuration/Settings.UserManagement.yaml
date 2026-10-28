@@ -1,11 +1,12 @@
 Sandstorm:
-  NeosTwoFactorAuthentication:
+  BackendUserManagement:
     # User management: "forgot password", initial password via mail, email validation and a backend module
-    # replacing the core user module. OFF by default - see README "User management" for how to enable it.
+    # replacing the core user module. ON by default (requires mail.from.address); the backend module and
+    # usernameIsEmail are optional - see README "User management".
     userManagement:
       # Gates the public endpoints (forgot password, set password, confirm email), the login screen link
       # and the CLI commands. The backend module is toggled via its "enabled" flag below.
-      enabled: false
+      enabled: true
       # Only accounts of these providers are managed / can reset their password.
       authenticationProviders: ['Neos.Neos:Backend']
       # Forgot password only sends a mail to validated (approved) primary email addresses.
@@ -19,7 +20,7 @@ Sandstorm:
         initialPassword: 'P7D'
         verifyEmail: 'P7D'
       # Forgot-password throttle (symfony/rate-limiter, sliding window). The limiter state is kept in the Flow cache
-      # Sandstorm_NeosTwoFactorAuthentication_Throttle.
+      # Sandstorm_BackendUserManagement_Throttle.
       throttle:
         perIdentifier:
           limit: 3
@@ -53,7 +54,7 @@ Flowpack:
         # exists. The async FakeQueue runs each job in a background `./flow` process - no worker needed. With a real
         # queue (e.g. Flowpack.JobQueue.Redis), override className and run `./flow job:work` for it.
         # Never set `async: false` - the request would then wait for the mail again.
-        'Sandstorm.NeosTwoFactorAuthentication:UserManagementMail':
+        'Sandstorm.BackendUserManagement:UserManagementMail':
           className: 'Flowpack\JobQueue\Common\Queue\FakeQueue'
           options:
             async: true
@@ -63,23 +64,22 @@ Neos:
     userInterface:
       backendLoginForm:
         stylesheets:
-          'Sandstorm.NeosTwoFactorAuthentication:UserManagementStyles': 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/Styles/UserManagementLogin.css'
+          'Sandstorm.BackendUserManagement:UserManagementStyles': 'resource://Sandstorm.BackendUserManagement/Public/Styles/UserManagementLogin.css'
     modules:
       administration:
         submodules:
           userManagement:
-            # Enable together with userManagement.enabled, and disable the core module
+            # Optional. Requires userManagement.enabled; disable the core module when enabling it
             # (Neos.Neos.modules.administration.submodules.users.enabled: false)
             enabled: false
-            label: 'Sandstorm.NeosTwoFactorAuthentication:UserManagement:module.label'
-            controller: 'Sandstorm\NeosTwoFactorAuthentication\UserManagement\Controller\ModuleController'
-            description: 'Sandstorm.NeosTwoFactorAuthentication:UserManagement:module.description'
+            label: 'Sandstorm.BackendUserManagement:UserManagement:module.label'
+            controller: 'Sandstorm\BackendUserManagement\UserManagement\Controller\ModuleController'
+            description: 'Sandstorm.BackendUserManagement:UserManagement:module.description'
             icon: 'fas fa-users'
             mainStylesheet: 'Lite'
             additionalResources:
               styleSheets:
-                - 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/Styles/Shared.css'
-                - 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/Styles/UserManagement.css'
+                - 'resource://Sandstorm.BackendUserManagement/Public/Styles/UserManagement.css'
 
   Flow:
     security:
@@ -87,7 +87,7 @@ Neos:
         providers:
           'Neos.Neos:Backend':
             requestPatterns:
-              'Sandstorm.NeosTwoFactorAuthentication:UserManagementModule':
+              'Sandstorm.BackendUserManagement:UserManagementModule':
                 pattern: 'ControllerObjectName'
                 patternOptions:
-                  controllerObjectNamePattern: 'Sandstorm\NeosTwoFactorAuthentication\UserManagement\Controller\ModuleController'
+                  controllerObjectNamePattern: 'Sandstorm\BackendUserManagement\UserManagement\Controller\ModuleController'

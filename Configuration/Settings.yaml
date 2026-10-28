@@ -2,67 +2,66 @@ Neos:
   Neos:
     fusion:
       autoInclude:
-        'Sandstorm.NeosTwoFactorAuthentication': true
+        'Sandstorm.BackendUserManagement': true
     modules:
       management:
         submodules:
           twoFactorAuthentication:
-            controller: 'Sandstorm\NeosTwoFactorAuthentication\Controller\BackendController'
-            label: 'Sandstorm.NeosTwoFactorAuthentication:Backend:module.label'
-            description: 'Sandstorm.NeosTwoFactorAuthentication:Backend:module.description'
+            controller: 'Sandstorm\BackendUserManagement\SecondFactor\Controller\ModuleController'
+            label: 'Sandstorm.BackendUserManagement:SecondFactor:module.label'
+            description: 'Sandstorm.BackendUserManagement:SecondFactor:module.description'
             icon: 'fas fa-qrcode'
             additionalResources:
               styleSheets:
-                - 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/Styles/Shared.css'
-                - 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/Styles/Backend.css'
+                - 'resource://Sandstorm.BackendUserManagement/Public/Styles/SecondFactorShared.css'
+                - 'resource://Sandstorm.BackendUserManagement/Public/Styles/SecondFactor.css'
               javaScripts:
-                - 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/index.js'
-                - 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/JavaScript/webauthn.js'
+                - 'resource://Sandstorm.BackendUserManagement/Public/JavaScript/totpSecret.js'
+                - 'resource://Sandstorm.BackendUserManagement/Public/JavaScript/webauthn.js'
 
     userInterface:
       translation:
         autoInclude:
-          'Sandstorm.NeosTwoFactorAuthentication':
+          'Sandstorm.BackendUserManagement':
             - '*'
 
       backendLoginForm:
         stylesheets:
-          'Sandstorm.NeosTwoFactorAuthentication:SharedStyles': 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/Styles/Shared.css'
-          'Sandstorm.NeosTwoFactorAuthentication:AdditionalStyles': 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/Styles/Login.css'
+          'Sandstorm.BackendUserManagement:MainStyles': 'resource://Sandstorm.BackendUserManagement/Public/Styles/Main.css'
         scripts:
-          'Sandstorm.NeosTwoFactorAuthentication:AdditionalScripts': 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/index.js'
-          'Sandstorm.NeosTwoFactorAuthentication:WebAuthnScripts': 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/JavaScript/webauthn.js'
+          'Sandstorm.BackendUserManagement:SecondFactorScripts': 'resource://Sandstorm.BackendUserManagement/Public/JavaScript/totpSecret.js'
+          'Sandstorm.BackendUserManagement:WebAuthnScripts': 'resource://Sandstorm.BackendUserManagement/Public/JavaScript/webauthn.js'
 
     Ui:
       resources:
         javascript:
-          'Sandstorm.NeosTwoFactorAuthentication:ReloadOnAuthTimeout':
-            resource: 'resource://Sandstorm.NeosTwoFactorAuthentication/Public/Neos.Ui/Plugin.js'
+          'Sandstorm.BackendUserManagement:ReloadOnAuthTimeout':
+            resource: 'resource://Sandstorm.BackendUserManagement/Public/Neos.Ui/Plugin.js'
 
   Flow:
     http:
       middlewares:
         'secondFactorRedirectMiddleware':
-          middleware: 'Sandstorm\NeosTwoFactorAuthentication\Http\Middleware\SecondFactorMiddleware'
+          middleware: 'Sandstorm\BackendUserManagement\SecondFactor\Http\Middleware\SecondFactorMiddleware'
           position: 'after securityEntryPoint'
     mvc:
       routes:
-        'Sandstorm.NeosTwoFactorAuthentication': true
+        'Sandstorm.BackendUserManagement': true
 
     security:
       authentication:
         providers:
           'Neos.Neos:Backend':
             requestPatterns:
-              'Sandstorm.NeosTwoFactorAuthentication:SecondFactor':
+              'Sandstorm.BackendUserManagement:SecondFactor':
                 pattern: 'ControllerObjectName'
                 patternOptions:
-                  controllerObjectNamePattern: 'Sandstorm\NeosTwoFactorAuthentication\Controller\(LoginController|BackendController)'
+                  controllerObjectNamePattern: 'Sandstorm\BackendUserManagement\SecondFactor\Controller\(LoginController|ModuleController)'
           # Parallel provider for usernameless passwordless passkey login. It has NO request
           # pattern, so its token is always active and can be authenticated in-request by the
           # PasswordlessLoginController; and NO entry point, so the existing Neos.Neos:Backend
           # WebRedirect still serves the login screen. With Neos' `oneToken` strategy, an
           # authenticated token here logs the (Neos.Neos:Backend) account into the backend.
-          'Sandstorm.NeosTwoFactorAuthentication:PasswordlessWebAuthn':
-            provider: 'Sandstorm\NeosTwoFactorAuthentication\Security\Authentication\WebAuthnPasswordlessProvider'
-            token: 'Sandstorm\NeosTwoFactorAuthentication\Security\Token\WebAuthnPasswordlessToken'
+          'Sandstorm.BackendUserManagement:PasswordlessWebAuthn':
+            provider: 'Sandstorm\BackendUserManagement\SecondFactor\Security\Authentication\WebAuthnPasswordlessProvider'
+            token: 'Sandstorm\BackendUserManagement\SecondFactor\Security\Token\WebAuthnPasswordlessToken'

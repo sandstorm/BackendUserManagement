@@ -81,13 +81,13 @@
   }
 
   // src/manifest.ts
-  dist_default("Sandstorm.NeosTwoFactorAuthentication:ReloadOnAuthTimeout", {}, (globalRegistry) => {
+  dist_default("Sandstorm.BackendUserManagement:ReloadOnAuthTimeout", {}, (globalRegistry) => {
     const sagasRegistry = globalRegistry.get("sagas");
     if (!sagasRegistry) {
       console.error("[2FA] sagas registry not found; cannot register reload-on-auth-timeout saga");
       return;
     }
-    sagasRegistry.set("Sandstorm.NeosTwoFactorAuthentication/reloadOnAuthTimeout", {
+    sagasRegistry.set("Sandstorm.BackendUserManagement/reloadOnAuthTimeout", {
       saga: reloadOnAuthTimeout
     });
   });

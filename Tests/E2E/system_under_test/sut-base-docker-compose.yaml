@@ -27,14 +27,14 @@ services:
       # This means that the neos container is ALWAYS accessed through the front facing Ingress
       FLOW_HTTP_TRUSTED_PROXIES: '*'
     volumes:
-      - ../../../Classes:/app/DistributionPackages/Sandstorm.NeosTwoFactorAuthentication/Classes:cached
-      - ../../../Configuration:/app/DistributionPackages/Sandstorm.NeosTwoFactorAuthentication/Configuration:cached
-      - ../../../Migrations:/app/DistributionPackages/Sandstorm.NeosTwoFactorAuthentication/Migrations:cached
-      - ../../../Resources:/app/DistributionPackages/Sandstorm.NeosTwoFactorAuthentication/Resources:cached
+      - ../../../Classes:/app/DistributionPackages/Sandstorm.BackendUserManagement/Classes:cached
+      - ../../../Configuration:/app/DistributionPackages/Sandstorm.BackendUserManagement/Configuration:cached
+      - ../../../Migrations:/app/DistributionPackages/Sandstorm.BackendUserManagement/Migrations:cached
+      - ../../../Resources:/app/DistributionPackages/Sandstorm.BackendUserManagement/Resources:cached
       # Tests are mounted so the package's PHPUnit unit/functional tests can run inside the SUT
       # (the E2E Playwright suite lives here too but runs from the host).
-      - ../../../Tests:/app/DistributionPackages/Sandstorm.NeosTwoFactorAuthentication/Tests:cached
-      - ../../../composer.json:/app/DistributionPackages/Sandstorm.NeosTwoFactorAuthentication/composer.json:cached
+      - ../../../Tests:/app/DistributionPackages/Sandstorm.BackendUserManagement/Tests:cached
+      - ../../../composer.json:/app/DistributionPackages/Sandstorm.BackendUserManagement/composer.json:cached
     networks:
       - neos_SUT
     ports:

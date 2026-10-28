@@ -1,120 +1,133 @@
-- name: 'Sandstorm Two Factor Authentication'
+- name: 'Sandstorm Second Factor'
   uriPattern: 'neos/second-factor-login'
   httpMethods: ['GET']
   defaults:
-    '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+    '@package': 'Sandstorm.BackendUserManagement'
+    '@subpackage': 'SecondFactor'
     '@controller': 'Login'
     '@action': 'askForSecondFactor'
     '@format': 'html'
   appendExceedingArguments: true
 
-- name: 'Sandstorm Two Factor Authentication - Validation'
+- name: 'Sandstorm Second Factor - Validation'
   uriPattern: 'neos/second-factor-login'
   httpMethods: ['POST']
   defaults:
-    '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+    '@package': 'Sandstorm.BackendUserManagement'
+    '@subpackage': 'SecondFactor'
     '@controller': 'Login'
     '@action': 'checkSecondFactor'
     '@format': 'html'
   appendExceedingArguments: true
 
-- name: 'Sandstorm Two Factor Authentication - Setup'
+- name: 'Sandstorm Second Factor - Setup'
   uriPattern: 'neos/second-factor-setup'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'Login'
       '@action': 'setupSecondFactor'
       '@format': 'html'
   httpMethods: ['GET']
   appendExceedingArguments: true
 
-- name: 'Sandstorm Two Factor Authentication - Create 2FA'
+- name: 'Sandstorm Second Factor - Create 2FA'
   uriPattern: 'neos/second-factor-setup'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'Login'
       '@action': 'createSecondFactor'
       '@format': 'html'
   httpMethods: ['POST']
 
-- name: 'Sandstorm Two Factor Authentication - Cancel Login'
+- name: 'Sandstorm Second Factor - Cancel Login'
   uriPattern: 'neos/second-factor-cancel-login'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'Login'
       '@action': 'cancelLogin'
       '@format': 'html'
   httpMethods: ['POST']
 
-- name: 'Sandstorm Two Factor Authentication - Setup TOTP'
+- name: 'Sandstorm Second Factor - Setup TOTP'
   uriPattern: 'neos/second-factor-setup/totp'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'Login'
       '@action': 'setupTotp'
       '@format': 'html'
   httpMethods: ['GET']
   appendExceedingArguments: true
 
-- name: 'Sandstorm Two Factor Authentication - Setup WebAuthn'
+- name: 'Sandstorm Second Factor - Setup WebAuthn'
   uriPattern: 'neos/second-factor-setup/webauthn'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'Login'
       '@action': 'setupWebAuthn'
       '@format': 'html'
   httpMethods: ['GET']
   appendExceedingArguments: true
 
-- name: 'Sandstorm Two Factor Authentication - WebAuthn register options'
+- name: 'Sandstorm Second Factor - WebAuthn register options'
   uriPattern: 'neos/second-factor-webauthn/register-options'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'Login'
       '@action': 'webAuthnRegisterOptions'
       '@format': 'json'
   httpMethods: ['POST']
 
-- name: 'Sandstorm Two Factor Authentication - WebAuthn register verify'
+- name: 'Sandstorm Second Factor - WebAuthn register verify'
   uriPattern: 'neos/second-factor-webauthn/register-verify'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'Login'
       '@action': 'webAuthnRegisterVerify'
       '@format': 'json'
   httpMethods: ['POST']
 
-- name: 'Sandstorm Two Factor Authentication - WebAuthn authenticate options'
+- name: 'Sandstorm Second Factor - WebAuthn authenticate options'
   uriPattern: 'neos/second-factor-webauthn/authenticate-options'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'Login'
       '@action': 'webAuthnAuthenticateOptions'
       '@format': 'json'
   httpMethods: ['POST']
 
-- name: 'Sandstorm Two Factor Authentication - WebAuthn authenticate verify'
+- name: 'Sandstorm Second Factor - WebAuthn authenticate verify'
   uriPattern: 'neos/second-factor-webauthn/authenticate-verify'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'Login'
       '@action': 'webAuthnAuthenticateVerify'
       '@format': 'json'
   httpMethods: ['POST']
 
-- name: 'Sandstorm Two Factor Authentication - Passwordless WebAuthn options'
+- name: 'Sandstorm Second Factor - Passwordless WebAuthn options'
   uriPattern: 'neos/passwordless-webauthn/options'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'PasswordlessLogin'
       '@action': 'options'
       '@format': 'json'
   httpMethods: ['POST']
 
-- name: 'Sandstorm Two Factor Authentication - Passwordless WebAuthn verify'
+- name: 'Sandstorm Second Factor - Passwordless WebAuthn verify'
   uriPattern: 'neos/passwordless-webauthn/verify'
   defaults:
-      '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+      '@package': 'Sandstorm.BackendUserManagement'
+      '@subpackage': 'SecondFactor'
       '@controller': 'PasswordlessLogin'
       '@action': 'verify'
       '@format': 'json'
@@ -124,7 +137,7 @@
 - name: 'Sandstorm User Management - Forgot password form'
   uriPattern: 'neos/password/request'
   defaults:
-    '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+    '@package': 'Sandstorm.BackendUserManagement'
     '@subpackage': 'UserManagement'
     '@controller': 'Password'
     '@action': 'request'
@@ -134,7 +147,7 @@
 - name: 'Sandstorm User Management - Forgot password submit'
   uriPattern: 'neos/password/request'
   defaults:
-    '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+    '@package': 'Sandstorm.BackendUserManagement'
     '@subpackage': 'UserManagement'
     '@controller': 'Password'
     '@action': 'requestSubmit'
@@ -144,7 +157,7 @@
 - name: 'Sandstorm User Management - Forgot password sent'
   uriPattern: 'neos/password/request/sent'
   defaults:
-    '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+    '@package': 'Sandstorm.BackendUserManagement'
     '@subpackage': 'UserManagement'
     '@controller': 'Password'
     '@action': 'requestSent'
@@ -156,7 +169,7 @@
   # the token is case-sensitive - Flow lowercases generated URIs by default
   toLowerCase: false
   defaults:
-    '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+    '@package': 'Sandstorm.BackendUserManagement'
     '@subpackage': 'UserManagement'
     '@controller': 'Password'
     '@action': 'set'
@@ -168,7 +181,7 @@
   # the token is case-sensitive - Flow lowercases generated URIs by default
   toLowerCase: false
   defaults:
-    '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+    '@package': 'Sandstorm.BackendUserManagement'
     '@subpackage': 'UserManagement'
     '@controller': 'Password'
     '@action': 'setSubmit'
@@ -180,7 +193,7 @@
   # the token is case-sensitive - Flow lowercases generated URIs by default
   toLowerCase: false
   defaults:
-    '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+    '@package': 'Sandstorm.BackendUserManagement'
     '@subpackage': 'UserManagement'
     '@controller': 'EmailVerification'
     '@action': 'confirm'
@@ -192,7 +205,7 @@
   # the token is case-sensitive - Flow lowercases generated URIs by default
   toLowerCase: false
   defaults:
-    '@package': 'Sandstorm.NeosTwoFactorAuthentication'
+    '@package': 'Sandstorm.BackendUserManagement'
     '@subpackage': 'UserManagement'
     '@controller': 'EmailVerification'
     '@action': 'confirmSubmit'

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Repository;
+namespace Sandstorm\BackendUserManagement\UserManagement\Domain\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\Repository;
 use Neos\Flow\Security\Account;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Model\UserActionToken;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Model\UserActionToken;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 
 #[Flow\Scope('singleton')]
 class UserActionTokenRepository extends Repository

@@ -1,0 +1,59 @@
+Sandstorm.BackendUserManagement.SecondFactor.LoginController.setupSecondFactor = Sandstorm.BackendUserManagement:SecondFactor.Page.SetupPage {
+    site = ${site}
+    styles = ${styles}
+    scripts = ${scripts}
+    username = ${username}
+    flashMessages = ${flashMessages}
+    notice = ${I18n.id('setup.enforced.notice').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+
+    body = Sandstorm.BackendUserManagement:SecondFactor.Component.MethodPicker {
+        items = Neos.Fusion:DataStructure {
+            # Passwordless passkey (discoverable, usernameless) — only offered when the feature is
+            # enabled. Registering here satisfies the enforced 2FA gate AND makes the account
+            # passwordless-login capable. Links to the WebAuthn setup screen with discoverable=true.
+            passkey = Neos.Fusion:DataStructure {
+                @if.passwordlessEnabled = ${Configuration.setting('Sandstorm.BackendUserManagement.secondFactor.webAuthn.passwordlessLoginEnabled')}
+                id = 'method.passkey'
+                heading = ${I18n.id('method.passkey.heading').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                label = ${I18n.id('method.passkey.label').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                description = ${I18n.id('method.passkey.description').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                href = Neos.Fusion:UriBuilder {
+                    package = 'Sandstorm.BackendUserManagement'
+                    subpackage = 'SecondFactor'
+                    controller = 'Login'
+                    action = 'setupWebAuthn'
+                    arguments = Neos.Fusion:DataStructure {
+                        discoverable = true
+                    }
+                }
+            }
+            totp = Neos.Fusion:DataStructure {
+                # Render the "or" divider before this item only when the passkey option sits above it,
+                # separating the passwordless passkey (option 1) from the second-factor methods (2 + 3).
+                separatorBefore = ${Configuration.setting('Sandstorm.BackendUserManagement.secondFactor.webAuthn.passwordlessLoginEnabled')}
+                id = 'method.totp'
+                heading = ${I18n.id('method.totp.heading').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                label = ${I18n.id('method.totp.label').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                description = ${I18n.id('method.totp.description').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                href = Neos.Fusion:UriBuilder {
+                    package = 'Sandstorm.BackendUserManagement'
+                    subpackage = 'SecondFactor'
+                    controller = 'Login'
+                    action = 'setupTotp'
+                }
+            }
+            webauthn = Neos.Fusion:DataStructure {
+                id = 'method.webauthn'
+                heading = ${I18n.id('method.webauthn.heading').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                label = ${I18n.id('method.webauthn.label').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                description = ${I18n.id('method.webauthn.description').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                href = Neos.Fusion:UriBuilder {
+                    package = 'Sandstorm.BackendUserManagement'
+                    subpackage = 'SecondFactor'
+                    controller = 'Login'
+                    action = 'setupWebAuthn'
+                }
+            }
+        }
+    }
+}

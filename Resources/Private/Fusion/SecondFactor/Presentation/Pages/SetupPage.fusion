@@ -1,0 +1,3 @@
+prototype(Sandstorm.BackendUserManagement:SecondFactor.Page.SetupPage) < prototype(Sandstorm.BackendUserManagement:Page.LoginBoxPage) {
+    footerAction = Sandstorm.BackendUserManagement:SecondFactor.Component.CancelLoginButton
+}

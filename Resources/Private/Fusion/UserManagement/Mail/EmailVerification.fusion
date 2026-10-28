@@ -1,34 +1,34 @@
 # Variables: uri, expiresAt, name
-Sandstorm.NeosTwoFactorAuthentication.UserManagement.Mail.emailVerification {
+Sandstorm.BackendUserManagement.UserManagement.Mail.emailVerification {
 
-    subject = Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate {
+    subject = Sandstorm.BackendUserManagement:UserManagement.Translate {
         id = 'mail.emailVerification.subject'
     }
 
-    html = Sandstorm.NeosTwoFactorAuthentication:UserManagement.Mail.HtmlLayout {
+    html = Sandstorm.BackendUserManagement:UserManagement.Mail.HtmlLayout {
         @context.expires = ${Date.format(expiresAt, 'Y-m-d H:i')}
         content = afx`
-            <p><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="mail.greeting" arguments={[String.htmlSpecialChars(name)]} /></p>
-            <p><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="mail.emailVerification.intro" /></p>
-            <Sandstorm.NeosTwoFactorAuthentication:UserManagement.Mail.Button href={uri}
-                label={I18n.id('mail.emailVerification.button').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()} />
-            <p><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="mail.expires" arguments={[expires]} /></p>
-            <p><Sandstorm.NeosTwoFactorAuthentication:UserManagement.Translate id="mail.emailVerification.ignore" /></p>
+            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.greeting" arguments={[String.htmlSpecialChars(name)]} /></p>
+            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.emailVerification.intro" /></p>
+            <Sandstorm.BackendUserManagement:UserManagement.Mail.Button href={uri}
+                label={I18n.id('mail.emailVerification.button').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()} />
+            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.expires" arguments={[expires]} /></p>
+            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.emailVerification.ignore" /></p>
         `
     }
 
     text = Neos.Fusion:Value {
         @context.expires = ${Date.format(expiresAt, 'Y-m-d H:i')}
         value = ${Array.join([
-            I18n.id('mail.greeting').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').arguments([name]).translate(),
+            I18n.id('mail.greeting').package('Sandstorm.BackendUserManagement').source('UserManagement').arguments([name]).translate(),
             '',
-            I18n.id('mail.emailVerification.intro').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate(),
+            I18n.id('mail.emailVerification.intro').package('Sandstorm.BackendUserManagement').source('UserManagement').translate(),
             '',
             uri,
             '',
-            I18n.id('mail.expires').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').arguments([expires]).translate(),
+            I18n.id('mail.expires').package('Sandstorm.BackendUserManagement').source('UserManagement').arguments([expires]).translate(),
             '',
-            I18n.id('mail.emailVerification.ignore').package('Sandstorm.NeosTwoFactorAuthentication').source('UserManagement').translate()
+            I18n.id('mail.emailVerification.ignore').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()
         ], String.chr(10))}
     }
 }

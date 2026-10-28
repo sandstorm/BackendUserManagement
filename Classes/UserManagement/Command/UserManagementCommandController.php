@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Command;
+namespace Sandstorm\BackendUserManagement\UserManagement\Command;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Neos\Domain\Model\User;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\SimpleUserFinder;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserActionTokenService;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserCommandService;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserManagementException;
-use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Sandstorm\BackendUserManagement\UserManagement\Application\SimpleUserFinder;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserActionTokenService;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserCommandService;
+use Sandstorm\BackendUserManagement\UserManagement\Application\UserManagementException;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 
 /**
  * User management: send password mails, prune tokens, report duplicate emails.
@@ -121,7 +121,7 @@ class UserManagementCommandController extends CommandController
     private function sendPasswordMail(string $username, ?string $authenticationProvider, UserActionType $action): void
     {
         if (!$this->settings['enabled']) {
-            $this->outputLine('<error>User management is disabled (Sandstorm.NeosTwoFactorAuthentication.userManagement.enabled).</error>');
+            $this->outputLine('<error>User management is disabled (Sandstorm.BackendUserManagement.userManagement.enabled).</error>');
             $this->quit(1);
         }
         $user = $this->findUser($username, $authenticationProvider);

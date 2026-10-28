@@ -2,7 +2,7 @@
 Feature: Backend module for two-factor authentication management with default settings
 
   # Requires FLOW_CONTEXT=Production/E2E-SUT/EnforceForAll
-  # Config: enforceTwoFactorAuthentication: true
+  # Config: secondFactor.enforceForAll: true
 
   Background:
     Given A user with username "admin", password "password" and role "Neos.Neos:Administrator" with enrolled 2FA device with name "Admin Initial Device" exists

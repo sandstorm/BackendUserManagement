@@ -1,0 +1,26 @@
+Sandstorm.BackendUserManagement.SecondFactor.LoginController.askForSecondFactor = Sandstorm.BackendUserManagement:SecondFactor.Page.LoginPage {
+    site = ${site}
+    styles = ${styles}
+    scripts = ${scripts}
+    username = ${username}
+    flashMessages = ${flashMessages}
+
+    body = Neos.Fusion:Component {
+        hasWebAuthn = ${hasWebAuthn}
+        hasTotp = ${hasTotp}
+        flashMessages = ${flashMessages}
+
+        renderer = afx`
+            <Sandstorm.BackendUserManagement:SecondFactor.Component.LoginWebAuthnStep
+                @if.show={props.hasWebAuthn}
+            />
+            <div class="neos-second-factor__or-separator" @if.show={props.hasWebAuthn && props.hasTotp}>
+                <span>{I18n.id('login.or').package('Sandstorm.BackendUserManagement').source('SecondFactor')}</span>
+            </div>
+            <Sandstorm.BackendUserManagement:SecondFactor.Component.LoginSecondFactorStep
+                @if.show={props.hasTotp}
+                flashMessages={props.flashMessages}
+            />
+        `
+    }
+}

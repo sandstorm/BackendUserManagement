@@ -1,3 +1,0 @@
-prototype(Sandstorm.NeosTwoFactorAuthentication:Page.SetupSecondFactorPage) < prototype(Sandstorm.NeosTwoFactorAuthentication:Page.LoginBoxPage) {
-    footerAction = Sandstorm.NeosTwoFactorAuthentication:Component.CancelLoginButton
-}

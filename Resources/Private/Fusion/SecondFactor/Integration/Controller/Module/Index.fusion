@@ -1,0 +1,50 @@
+Sandstorm.BackendUserManagement.SecondFactor.ModuleController.index = Sandstorm.BackendUserManagement:Page.DefaultPage {
+    body = Sandstorm.BackendUserManagement:BodyLayout.Default {
+        flashMessages = ${flashMessages}
+
+        # Section 1: Passkey Registration — shown whenever passwordless login is enabled. Its CTA
+        # goes straight to the single-button passkey screen (discoverable = true).
+        headerSection = Sandstorm.BackendUserManagement:SecondFactor.Component.RegisterPasskeyBanner {
+            show = ${showPasskeyRegistration}
+            registerUri = Neos.Fusion:UriBuilder {
+                package = 'Sandstorm.BackendUserManagement'
+                subpackage = 'SecondFactor'
+                controller = 'Module'
+                action = 'newWebAuthn'
+                arguments = Neos.Fusion:DataStructure {
+                    discoverable = true
+                }
+            }
+        }
+
+        # teaserTitle intentionally empty; the index renders its own section headings below.
+        teaserTitle = ''
+
+        content = Neos.Fusion:Component {
+            factorsAndPerson = ${factorsAndPerson}
+            # Section 2: Create new second factor — leads to the method picker (TOTP / passkey as 2nd factor).
+            createUri = Neos.Fusion:UriBuilder {
+                package = 'Sandstorm.BackendUserManagement'
+                subpackage = 'SecondFactor'
+                controller = 'Module'
+                action = 'new'
+            }
+            renderer = afx`
+                <section class="neos-second-factor__create-section">
+                    <legend>{I18n.id('module.create.title').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}</legend>
+                    <p>{I18n.id('module.create.description').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}</p>
+                    <div class="neos-second-factor__list-actions">
+                        <a href={props.createUri} class="neos-button neos-button-primary">
+                            {I18n.id('module.index.create').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                        </a>
+                    </div>
+                </section>
+
+                <section class="neos-second-factor__list-section">
+                    <legend>{I18n.id('module.index.title').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}</legend>
+                    <Sandstorm.BackendUserManagement:SecondFactor.Component.SecondFactorList factorsAndPerson={props.factorsAndPerson} />
+                </section>
+            `
+        }
+    }
+}

@@ -1,8 +1,8 @@
-# Mails are rendered by Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application\UserMailer:
-# each mail is a path below Sandstorm.NeosTwoFactorAuthentication.UserManagement.Mail with subject, html and text.
+# Mails are rendered by Sandstorm\BackendUserManagement\UserManagement\Application\UserMailer:
+# each mail is a path below Sandstorm.BackendUserManagement.UserManagement.Mail with subject, html and text.
 # AFX does not escape - all user-provided values go through String.htmlSpecialChars in the HTML parts.
 
-prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Mail.HtmlLayout) < prototype(Neos.Fusion:Component) {
+prototype(Sandstorm.BackendUserManagement:UserManagement.Mail.HtmlLayout) < prototype(Neos.Fusion:Component) {
     content = ''
 
     # the doctype breaks AFX, so it is prepended
@@ -23,7 +23,7 @@ prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Mail.HtmlLayout) 
     `
 }
 
-prototype(Sandstorm.NeosTwoFactorAuthentication:UserManagement.Mail.Button) < prototype(Neos.Fusion:Component) {
+prototype(Sandstorm.BackendUserManagement:UserManagement.Mail.Button) < prototype(Neos.Fusion:Component) {
     href = ''
     label = ''
 

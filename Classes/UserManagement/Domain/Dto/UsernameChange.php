@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\Dto;
+namespace Sandstorm\BackendUserManagement\UserManagement\Domain\Dto;
 
 /**
  * An account that follows its user's newly validated email (`usernameIsEmail`). Not $changed if the new username

@@ -1,0 +1,35 @@
+Sandstorm.BackendUserManagement.SecondFactor.ModuleController.new = Sandstorm.BackendUserManagement:Page.DefaultPage {
+    body = Sandstorm.BackendUserManagement:BodyLayout.Default {
+        flashMessages = ${flashMessages}
+
+        teaserTitle = ${I18n.id('module.new.title').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+        teaserText = ${I18n.id('module.new.description.picker').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+
+        content = Sandstorm.BackendUserManagement:SecondFactor.Component.MethodPicker {
+            items = Neos.Fusion:DataStructure {
+                totp = Neos.Fusion:DataStructure {
+                    id = 'method.totp'
+                    label = ${I18n.id('method.totp.label').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                    description = ${I18n.id('method.totp.description').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                    href = Neos.Fusion:UriBuilder {
+                        package = 'Sandstorm.BackendUserManagement'
+                        subpackage = 'SecondFactor'
+                        controller = 'Module'
+                        action = 'newTotp'
+                    }
+                }
+                webauthn = Neos.Fusion:DataStructure {
+                    id = 'method.webauthn'
+                    label = ${I18n.id('method.webauthn.label').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                    description = ${I18n.id('method.webauthn.description').package('Sandstorm.BackendUserManagement').source('SecondFactor').translate()}
+                    href = Neos.Fusion:UriBuilder {
+                        package = 'Sandstorm.BackendUserManagement'
+                        subpackage = 'SecondFactor'
+                        controller = 'Module'
+                        action = 'newWebAuthn'
+                    }
+                }
+            }
+        }
+    }
+}

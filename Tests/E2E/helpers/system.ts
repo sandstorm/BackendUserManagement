@@ -56,7 +56,7 @@ export function sendPasswordMailViaCli(kind: 'initialpassword' | 'reset', userna
 // The forgot-password throttle (rate limiter state in a Flow cache) outlives a scenario.
 export function clearUserManagementThrottle() {
   execSync(
-    `docker exec -u www-data -w /app ${CONTAINER} bash -c "./flow flow:cache:flushone Sandstorm_NeosTwoFactorAuthentication_Throttle"`,
+    `docker exec -u www-data -w /app ${CONTAINER} bash -c "./flow flow:cache:flushone Sandstorm_BackendUserManagement_Throttle"`,
     { stdio: 'ignore', cwd: dirname('.') }
   )
 }

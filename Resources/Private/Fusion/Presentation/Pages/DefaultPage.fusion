@@ -1,4 +1,4 @@
-prototype(Sandstorm.NeosTwoFactorAuthentication:Page.DefaultPage) < prototype(Sandstorm.NeosTwoFactorAuthentication:Page.AbstractPage) {
+prototype(Sandstorm.BackendUserManagement:Page.DefaultPage) < prototype(Sandstorm.BackendUserManagement:Page.AbstractPage) {
     head {
         headTags = Neos.Fusion:Component {
             renderer = afx`
