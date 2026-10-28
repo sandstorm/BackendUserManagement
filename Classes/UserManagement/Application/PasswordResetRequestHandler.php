@@ -1,0 +1,148 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Application;
+
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
+use Neos\Flow\Security\Account;
+use Psr\Log\LoggerInterface;
+use Sandstorm\NeosTwoFactorAuthentication\UserManagement\Domain\UserActionType;
+use Throwable;
+
+/**
+ * "Forgot password": the user enters a username OR an email address.
+ *
+ * The caller ALWAYS shows the same generic response - this handler never reveals whether an account exists,
+ * and swallows (but logs) mail errors for the same reason. The mail is sent via a queue, so the response time
+ * does not reveal it either.
+ *
+ * Resolution:
+ *   - accounts whose identifier equals the input (any managed provider), mailed to their user's primary email
+ *   - plus accounts whose user's primary email equals the input (case-insensitive)
+ * Several accounts sharing one email get ONE mail with one link per username.
+ */
+#[Flow\Scope('singleton')]
+class PasswordResetRequestHandler
+{
+    #[Flow\Inject]
+    protected SimpleUserFinder $simpleUserFinder;
+
+    #[Flow\Inject]
+    protected UserActionTokenService $tokenService;
+
+    #[Flow\Inject]
+    protected UserMailer $userMailer;
+
+    #[Flow\Inject]
+    protected Throttle $throttle;
+
+    #[Flow\Inject]
+    protected PersistenceManagerInterface $persistenceManager;
+
+    #[Flow\Inject(name: 'Neos.Flow:SecurityLogger', lazy: false)]
+    protected LoggerInterface $securityLogger;
+
+    #[Flow\InjectConfiguration(path: 'userManagement.requireValidatedEmail')]
+    protected bool $requireValidatedEmail = true;
+
+    /** @var array{perIdentifier: array{limit: int, window: string}, perIp: array{enabled: bool, limit: int, window: string}} */
+    #[Flow\InjectConfiguration(path: 'userManagement.throttle')]
+    protected array $throttleSettings;
+
+    /**
+     * @return bool false if the request was throttled. Safe to show: the throttle counts every input, whether an
+     *              account exists or not.
+     */
+    public function handle(string $usernameOrEmail, string $clientIp): bool
+    {
+        $input = trim($usernameOrEmail);
+        if ($input === '') {
+            return true;
+        }
+
+        // IP first: a request rejected per IP must not use up the identifier's limit - otherwise a single client
+        // could block the password reset of any user by spamming their username
+        $allowed = (!$this->throttleSettings['perIp']['enabled'] || $this->throttle->attempt(
+            'forgotPassword:ip:' . $clientIp,
+            $this->throttleSettings['perIp']['limit'],
+            $this->throttleSettings['perIp']['window']
+        )) && $this->throttle->attempt(
+            'forgotPassword:identifier:' . mb_strtolower($input),
+            $this->throttleSettings['perIdentifier']['limit'],
+            $this->throttleSettings['perIdentifier']['window']
+        );
+        if (!$allowed) {
+            $this->securityLogger->notice('Sandstorm/NeosTwoFactorAuthentication: forgot password request throttled.', ['clientIp' => $clientIp]);
+            return false;
+        }
+
+        foreach ($this->resolveAccountsByRecipient($input) as $recipient => $accounts) {
+            $this->sendMail($recipient, $accounts);
+        }
+        return true;
+    }
+
+    /**
+     * @return array<string, list<Account>> recipient email => accounts
+     */
+    public function resolveAccountsByRecipient(string $input): array
+    {
+        /** @var array<string, Account> $accountsById */
+        $accountsById = [];
+        foreach ([
+            ...$this->simpleUserFinder->findActiveAccountsByAccountIdentifier($input),
+            // unvalidated ones too - so they are logged below instead of silently not found
+            ...$this->simpleUserFinder->findActiveAccountsByPrimaryEmail($input, false),
+        ] as $account) {
+            $accountsById[(string)$this->persistenceManager->getIdentifierByObject($account)] = $account;
+        }
+
+        $byRecipient = [];
+        foreach ($accountsById as $account) {
+            $user = $this->simpleUserFinder->findUserOfAccount($account);
+            $primaryEmail = $user !== null ? $this->simpleUserFinder->getPrimaryEmail($user) : null;
+            if ($primaryEmail === null || ($this->requireValidatedEmail && !$primaryEmail->isApproved())) {
+                // the user still gets the generic answer - only admins may learn why no mail was sent
+                $this->securityLogger->warning(
+                    'Sandstorm/NeosTwoFactorAuthentication: forgot password requested, but no mail sent - '
+                    . ($primaryEmail === null ? 'the user has no email address.' : 'the email address is not validated (userManagement.requireValidatedEmail).'),
+                    ['accountIdentifier' => $account->getAccountIdentifier()]
+                );
+                continue;
+            }
+            $byRecipient[SimpleUserFinder::normalizeEmail($primaryEmail->getIdentifier())][] = $account;
+        }
+        return $byRecipient;
+    }
+
+    /**
+     * @param list<Account> $accounts
+     */
+    private function sendMail(string $recipient, array $accounts): void
+    {
+        $links = [];
+        foreach ($accounts as $account) {
+            $links[] = [
+                'username' => $account->getAccountIdentifier(),
+                'token' => $this->tokenService->issue($account, UserActionType::RESET_PASSWORD, $recipient),
+            ];
+        }
+        // with several users sharing the email, the mail is in the first user's language
+        $user = $this->simpleUserFinder->findUserOfAccount($accounts[0]);
+        try {
+            $this->userMailer->sendPasswordLinks(
+                $recipient,
+                $user,
+                UserActionType::RESET_PASSWORD,
+                $links,
+                (new \DateTimeImmutable())->add($this->tokenService->getLifetime(UserActionType::RESET_PASSWORD)),
+                true
+            );
+        } catch (Throwable $exception) {
+            // rendering and queueing errors only - transport errors are logged by the SendMailJob
+            $this->securityLogger->error('Sandstorm/NeosTwoFactorAuthentication: could not render password reset mail: ' . $exception->getMessage());
+        }
+    }
+}

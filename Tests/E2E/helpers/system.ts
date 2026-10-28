@@ -38,3 +38,33 @@ export function destroyAllSessions() {
     { stdio: 'ignore', cwd: dirname('.') }
   )
 }
+
+export function setEmail(username: string, email: string, validated: boolean) {
+  execSync(
+    `docker exec -u www-data -w /app ${CONTAINER} bash -c "./flow usermanagement:setemail ${username} ${email}${validated ? ' --validated' : ''}"`,
+    { stdio: 'ignore', cwd: dirname('.') }
+  )
+}
+
+export function sendPasswordMailViaCli(kind: 'initialpassword' | 'reset', username: string) {
+  execSync(
+    `docker exec -u www-data -w /app ${CONTAINER} bash -c "./flow usermanagement:send${kind} ${username}"`,
+    { stdio: 'ignore', cwd: dirname('.') }
+  )
+}
+
+// The forgot-password throttle (rate limiter state in a Flow cache) outlives a scenario.
+export function clearUserManagementThrottle() {
+  execSync(
+    `docker exec -u www-data -w /app ${CONTAINER} bash -c "./flow flow:cache:flushone Sandstorm_NeosTwoFactorAuthentication_Throttle"`,
+    { stdio: 'ignore', cwd: dirname('.') }
+  )
+}
+
+// Neos 8 only: the names of all workspaces (personal ones are named after the username)
+export function workspaceNames(): string {
+  return execSync(
+    `docker exec -u www-data -w /app ${CONTAINER} bash -c "./flow workspace:list"`,
+    { encoding: 'utf8', cwd: dirname('.') }
+  );
+}
