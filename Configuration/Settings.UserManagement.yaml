@@ -24,8 +24,12 @@ Sandstorm:
         perIdentifier:
           limit: 3
           window: 'PT15M'
+        # Only a safety net against one client mailing many accounts - generous on purpose. Behind a reverse proxy,
+        # set Neos.Flow.http.trustedProxies, or every request counts for the proxy's IP and the limit becomes a global
+        # one. Disable it if you can't (or a WAF / the ingress limits requests already).
         perIp:
-          limit: 10
+          enabled: true
+          limit: 2
           window: 'PT15M'
         # symfony/lock store DSN, see Symfony\Component\Lock\Store\StoreFactory - e.g. 'flock' (local file
         # system) or 'redis://redis:6379'

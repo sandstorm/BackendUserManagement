@@ -154,7 +154,8 @@ Links are validated on GET but only used on POST (mail scanners prefetch links),
 and are invalidated when a newer link of the same kind is sent or the email changed. Setting a password logs out all
 sessions of the user and never logs in automatically, so 2FA stays in force. Forgot-password requests are throttled
 per username/email and per IP ([symfony/rate-limiter](https://symfony.com/doc/current/rate_limiter.html), sliding
-window, with [symfony/lock](https://symfony.com/doc/current/lock.html)). Forgot-password mails are sent via a
+window, with [symfony/lock](https://symfony.com/doc/current/lock.html)) - behind a reverse proxy, see
+[Running behind a reverse proxy](#running-behind-a-reverse-proxy). Forgot-password mails are sent via a
 [Flowpack.JobQueue.Common](https://github.com/Flowpack/jobqueue-common) queue, so the response time does not reveal
 whether an account exists. By default this is the async `FakeQueue` - a background `./flow` process per mail, no worker
 needed (requires `exec()` and `Neos.Flow.core.phpBinaryPathAndFilename` pointing to the PHP CLI). To use a real queue,
@@ -191,7 +192,8 @@ Neos:
 ```
 
 Run `./flow doctrine:migrate` and add a daily cron job for `./flow usermanagement:prunetokens`. Running more than
-one Neos container? See [Running several Neos containers](#running-several-neos-containers).
+one Neos container? See [Running several Neos containers](#running-several-neos-containers). Behind a reverse proxy?
+See [Running behind a reverse proxy](#running-behind-a-reverse-proxy).
 
 All settings with their defaults are in `Configuration/Settings.UserManagement.yaml` (authentication providers,
 `requireValidatedEmail`, `usernameIsEmail`, link lifetimes, throttle limits and lock store, password length).
@@ -208,6 +210,38 @@ only users with the same or a subset of their roles. Nobody can delete, deactiva
 | `usermanagement:setemail <username> <email> [--validated]` | set the primary email, e.g. of legacy users |
 | `usermanagement:duplicateemails` | list users sharing a primary email (legacy data; the module prevents new ones) |
 | `usermanagement:prunetokens` | delete used/expired links (cron) |
+
+### Running behind a reverse proxy
+
+The **forgot-password throttle** limits requests per IP. Behind a reverse proxy (ingress, load balancer, CDN), Flow only
+sees the client's IP if the proxy is trusted - otherwise all requests share the proxy's IP, and forgot-password is
+blocked for everybody after 50 requests in 15 minutes. Trust the proxy:
+
+```yaml
+# Configuration/Settings.yaml of your project
+Neos:
+  Flow:
+    http:
+      trustedProxies:
+        # address ranges of your proxies - or set the env variable FLOW_HTTP_TRUSTED_PROXIES
+        proxies:
+          - '10.0.0.0/8'
+```
+
+Or, if you can't (or a WAF / the ingress limits requests already), disable the per-IP limit. The per-username/email
+limit stays:
+
+```yaml
+# Configuration/Settings.yaml of your project
+Sandstorm:
+  NeosTwoFactorAuthentication:
+    userManagement:
+      throttle:
+        perIp:
+          enabled: false
+```
+
+Don't set `proxies: '*'` to trust everybody: clients could then fake `X-Forwarded-For` and bypass the per-IP limit.
 
 ### Running several Neos containers
 

@@ -47,7 +47,7 @@ class PasswordResetRequestHandler
     #[Flow\InjectConfiguration(path: 'userManagement.requireValidatedEmail')]
     protected bool $requireValidatedEmail = true;
 
-    /** @var array{perIdentifier: array{limit: int, window: string}, perIp: array{limit: int, window: string}} */
+    /** @var array{perIdentifier: array{limit: int, window: string}, perIp: array{enabled: bool, limit: int, window: string}} */
     #[Flow\InjectConfiguration(path: 'userManagement.throttle')]
     protected array $throttleSettings;
 
@@ -58,17 +58,18 @@ class PasswordResetRequestHandler
             return;
         }
 
-        $identifierAllowed = $this->throttle->attempt(
+        // IP first: a request rejected per IP must not use up the identifier's limit - otherwise a single client
+        // could block the password reset of any user by spamming their username
+        $allowed = (!$this->throttleSettings['perIp']['enabled'] || $this->throttle->attempt(
+            'forgotPassword:ip:' . $clientIp,
+            $this->throttleSettings['perIp']['limit'],
+            $this->throttleSettings['perIp']['window']
+        )) && $this->throttle->attempt(
             'forgotPassword:identifier:' . mb_strtolower($input),
             $this->throttleSettings['perIdentifier']['limit'],
             $this->throttleSettings['perIdentifier']['window']
         );
-        $ipAllowed = $this->throttle->attempt(
-            'forgotPassword:ip:' . $clientIp,
-            $this->throttleSettings['perIp']['limit'],
-            $this->throttleSettings['perIp']['window']
-        );
-        if (!$identifierAllowed || !$ipAllowed) {
+        if (!$allowed) {
             $this->securityLogger->notice('Sandstorm/NeosTwoFactorAuthentication: forgot password request throttled.', ['clientIp' => $clientIp]);
             return;
         }

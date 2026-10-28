@@ -36,12 +36,20 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
 
     private bool $throttleAllows = true;
 
+    /**
+     * throttle bucket keys, in the order they were attempted
+     *
+     * @var list<string>
+     */
+    private array $throttleAttempts = [];
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->accounts = [];
         $this->sentMails = [];
         $this->throttleAllows = true;
+        $this->throttleAttempts = [];
 
         $this->addAccount('jane', 'shared@example.com', true);
         $this->addAccount('jane-admin', 'shared@example.com', true);
@@ -78,7 +86,10 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         );
 
         $throttle = $this->createMock(Throttle::class);
-        $throttle->method('attempt')->willReturnCallback(fn () => $this->throttleAllows);
+        $throttle->method('attempt')->willReturnCallback(function (string $bucketKey) {
+            $this->throttleAttempts[] = $bucketKey;
+            return $this->throttleAllows;
+        });
 
         $this->handler = new PasswordResetRequestHandler();
         $this->inject($this->handler, 'simpleUserFinder', $finder);
@@ -90,7 +101,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         $this->inject($this->handler, 'requireValidatedEmail', true);
         $this->inject($this->handler, 'throttleSettings', [
             'perIdentifier' => ['limit' => 3, 'window' => 'PT15M'],
-            'perIp' => ['limit' => 10, 'window' => 'PT15M'],
+            'perIp' => ['enabled' => true, 'limit' => 50, 'window' => 'PT15M'],
         ]);
     }
 
@@ -161,6 +172,35 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         $this->handler->handle('john', '127.0.0.1');
 
         self::assertSame([], $this->sentMails);
+    }
+
+    /**
+     * @test
+     */
+    public function requestThrottledPerIpDoesNotCountForTheIdentifier(): void
+    {
+        $this->throttleAllows = false;
+
+        $this->handler->handle('john', '127.0.0.1');
+
+        // otherwise one client could block any user's password reset by spamming their username
+        self::assertSame(['forgotPassword:ip:127.0.0.1'], $this->throttleAttempts);
+    }
+
+    /**
+     * @test
+     */
+    public function disabledIpThrottleOnlyCountsTheIdentifier(): void
+    {
+        $this->inject($this->handler, 'throttleSettings', [
+            'perIdentifier' => ['limit' => 3, 'window' => 'PT15M'],
+            'perIp' => ['enabled' => false, 'limit' => 50, 'window' => 'PT15M'],
+        ]);
+
+        $this->handler->handle('john', '127.0.0.1');
+
+        self::assertSame(['forgotPassword:identifier:john'], $this->throttleAttempts);
+        self::assertCount(1, $this->sentMails);
     }
 
     private function addAccount(string $identifier, string $email, bool $approved): void

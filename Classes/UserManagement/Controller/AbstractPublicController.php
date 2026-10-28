@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sandstorm\NeosTwoFactorAuthentication\UserManagement\Controller;
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Http\ServerRequestAttributes;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\FlashMessage\FlashMessageService;
 use Neos\Fusion\View\FusionView;
@@ -34,7 +35,7 @@ abstract class AbstractPublicController extends ActionController
     protected bool $userManagementEnabled = false;
 
     /** @var array{stylesheets?: array<string, ?string>, scripts?: array<string, ?string>} */
-    #[Flow\InjectConfiguration(package: 'Neos.Neos', path: 'userInterface.backendLoginForm')]
+    #[Flow\InjectConfiguration(path: 'userInterface.backendLoginForm', package: 'Neos.Neos')]
     protected array $backendLoginFormSettings = [];
 
     protected function initializeAction(): void
@@ -59,7 +60,7 @@ abstract class AbstractPublicController extends ActionController
 
     protected function clientIp(): string
     {
-        $clientIp = $this->request->getHttpRequest()->getAttribute(\Neos\Flow\Http\ServerRequestAttributes::CLIENT_IP);
+        $clientIp = $this->request->getHttpRequest()->getAttribute(ServerRequestAttributes::CLIENT_IP);
         return is_string($clientIp) ? $clientIp : 'unknown';
     }
 }
