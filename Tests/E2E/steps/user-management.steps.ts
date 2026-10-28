@@ -157,6 +157,23 @@ When('I delete the users {string} via bulk delete', async ({ page }, usernames: 
   await page.waitForLoadState('networkidle');
 });
 
+When('I click the link to the users without a validated email', async ({ page }) => {
+  await page.locator('[data-test-id="show-unvalidated-email-users"]').click();
+  await page.waitForLoadState('networkidle');
+});
+
+When('I click the link to show all users', async ({ page }) => {
+  await page.locator('[data-test-id="unvalidated-email-filter"] a').click();
+  await page.waitForLoadState('networkidle');
+});
+
+// the list as currently shown - unlike "the user list should contain", which reloads the unfiltered list
+Then('only the users {string} should be shown', async ({ page }, usernames: string) => {
+  const rows = page.locator('[data-test-id="user-row"]');
+  const shown = await rows.evaluateAll((elements) => elements.map((element) => element.getAttribute('data-username')));
+  expect(shown.sort()).toEqual(usernames.split(',').map((name) => name.trim()).sort());
+});
+
 When('I send a test mail', async ({ page }) => {
   await page.goto(MODULE_URL);
   await page.locator('[data-test-id="send-test-mail"]').click();
