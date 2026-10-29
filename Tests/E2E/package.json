@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
-    "playwright-bdd": "^9.2.0",
+    "playwright-bdd": "^9.2.1",
     "prettier": "^3.8.4",
     "typescript": "^6.0.2"
   },
