@@ -7,3 +7,6 @@ composer.lock
 
 # IDEs
 .idea/
+
+# Test results
+test-results/
