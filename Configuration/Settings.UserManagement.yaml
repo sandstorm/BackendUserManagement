@@ -30,7 +30,7 @@ Sandstorm:
         # one. Disable it if you can't (or a WAF / the ingress limits requests already).
         perIp:
           enabled: true
-          limit: 2
+          limit: 50
           window: 'PT15M'
         # symfony/lock store DSN, see Symfony\Component\Lock\Store\StoreFactory - e.g. 'flock' (local file
         # system) or 'redis://redis:6379'

@@ -136,7 +136,7 @@ Sandstorm:
           window: 'PT15M'
         perIp:
           enabled: true
-          limit: 2
+          limit: 50
           window: 'PT15M'
         # symfony/lock DSN
         lockStore: 'flock'
