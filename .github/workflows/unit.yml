@@ -1,0 +1,28 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit:
+    name: Unit Tests (${{ matrix.neos }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        neos: [neos8, neos9]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # The E2E SUT image is a full Neos distribution incl. PHPUnit and Neos.BuildEssentials - the package
+      # (and its Tests/) is mounted into it, see Tests/E2E/system_under_test/sut-base-docker-compose.yaml
+      - name: Build Docker image
+        run: docker compose -f Tests/E2E/system_under_test/${{ matrix.neos }}/docker-compose.yaml build --pull
+
+      - name: Run unit tests
+        working-directory: Tests/E2E
+        run: make test-unit-${{ matrix.neos }}

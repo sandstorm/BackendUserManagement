@@ -25,6 +25,7 @@ make setup-test   # only the node part
 make test         # everything, Neos 8 + 9
 make test-neos8   # all variants on Neos 8
 make test-neos9   # all variants on Neos 9
+make test-unit    # PHPUnit unit tests in the SUT image (also test-unit-neos8 / test-unit-neos9)
 make help         # all targets
 ```
 
@@ -68,6 +69,7 @@ Make targets pass them via `ARGS`:
 ```bash
 make test-neos9-user-management ARGS="--last-failed"                 # rerun only the failed tests
 make test-neos9-user-management ARGS='-g "Requests are throttled"'  # one scenario by title
+make test-unit-neos9 ARGS="--filter ThrottleTest"                     # phpunit flags work the same way
 ```
 
 ```bash
