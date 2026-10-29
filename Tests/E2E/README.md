@@ -63,6 +63,13 @@ npm run test:neos8:enforce-all -- --headed
 npm run test:neos8:enforce-all -- --grep @debug   # after tagging a scenario with @debug
 ```
 
+Make targets pass them via `ARGS`:
+
+```bash
+make test-neos9-user-management ARGS="--last-failed"                 # rerun only the failed tests
+make test-neos9-user-management ARGS='-g "Requests are throttled"'  # one scenario by title
+```
+
 ```bash
 make start-sut-neos8   # start without tests (also -neos9)
 make log-sut-neos8     # follow logs

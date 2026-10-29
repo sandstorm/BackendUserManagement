@@ -1,4 +1,6 @@
 E2E_DIR = $(CURDIR)
+# extra arguments for playwright, e.g. make test-neos9-user-management ARGS="--last-failed"
+ARGS ?=
 NEOS8_COMPOSE = $(E2E_DIR)/system_under_test/neos8/docker-compose.yaml
 NEOS9_COMPOSE = $(E2E_DIR)/system_under_test/neos9/docker-compose.yaml
 
@@ -64,67 +66,67 @@ test-neos9: test-neos9-defaults test-neos9-enforce-all test-neos9-enforce-role t
 
 ## Run neos8 E2E tests with default 2FA settings
 test-neos8-defaults:
-	cd $(E2E_DIR) && npm run test:neos8:defaults
+	cd $(E2E_DIR) && npm run test:neos8:defaults -- $(ARGS)
 
 ## Run neos8 E2E tests with 2FA enforced for all users
 test-neos8-enforce-all:
-	cd $(E2E_DIR) && npm run test:neos8:enforce-all
+	cd $(E2E_DIR) && npm run test:neos8:enforce-all -- $(ARGS)
 
 ## Run neos8 E2E tests with 2FA enforced for a role
 test-neos8-enforce-role:
-	cd $(E2E_DIR) && npm run test:neos8:enforce-role
+	cd $(E2E_DIR) && npm run test:neos8:enforce-role -- $(ARGS)
 
 ## Run neos8 E2E tests with 2FA enforced for a provider
 test-neos8-enforce-provider:
-	cd $(E2E_DIR) && npm run test:neos8:enforce-provider
+	cd $(E2E_DIR) && npm run test:neos8:enforce-provider -- $(ARGS)
 
 ## Run neos9 E2E tests with default 2FA settings
 test-neos9-defaults:
-	cd $(E2E_DIR) && npm run test:neos9:defaults
+	cd $(E2E_DIR) && npm run test:neos9:defaults -- $(ARGS)
 
 ## Run neos9 E2E tests with 2FA enforced for all users
 test-neos9-enforce-all:
-	cd $(E2E_DIR) && npm run test:neos9:enforce-all
+	cd $(E2E_DIR) && npm run test:neos9:enforce-all -- $(ARGS)
 
 ## Run neos9 E2E tests with 2FA enforced for a role
 test-neos9-enforce-role:
-	cd $(E2E_DIR) && npm run test:neos9:enforce-role
+	cd $(E2E_DIR) && npm run test:neos9:enforce-role -- $(ARGS)
 
 ## Run neos9 E2E tests with 2FA enforced for a provider
 test-neos9-enforce-provider:
-	cd $(E2E_DIR) && npm run test:neos9:enforce-provider
+	cd $(E2E_DIR) && npm run test:neos9:enforce-provider -- $(ARGS)
 
 ## Run neos8 E2E tests for passwordless passkey login
 test-neos8-passwordless:
-	cd $(E2E_DIR) && npm run test:neos8:passwordless
+	cd $(E2E_DIR) && npm run test:neos8:passwordless -- $(ARGS)
 
 ## Run neos8 E2E tests with 2FA enforced for all users AND passwordless enabled
 test-neos8-enforce-all-passwordless:
-	cd $(E2E_DIR) && npm run test:neos8:enforce-all-passwordless
+	cd $(E2E_DIR) && npm run test:neos8:enforce-all-passwordless -- $(ARGS)
 
 ## Run the user management tests against Neos 8
 test-neos8-user-management:
-	cd $(E2E_DIR) && npm run test:neos8:user-management
+	cd $(E2E_DIR) && npm run test:neos8:user-management -- $(ARGS)
 
 ## Run the user management tests with usernameIsEmail against Neos 8
 test-neos8-username-is-email:
-	cd $(E2E_DIR) && npm run test:neos8:username-is-email
+	cd $(E2E_DIR) && npm run test:neos8:username-is-email -- $(ARGS)
 
 ## Run neos9 E2E tests for passwordless passkey login
 test-neos9-passwordless:
-	cd $(E2E_DIR) && npm run test:neos9:passwordless
+	cd $(E2E_DIR) && npm run test:neos9:passwordless -- $(ARGS)
 
 ## Run neos9 E2E tests with 2FA enforced for all users AND passwordless enabled
 test-neos9-enforce-all-passwordless:
-	cd $(E2E_DIR) && npm run test:neos9:enforce-all-passwordless
+	cd $(E2E_DIR) && npm run test:neos9:enforce-all-passwordless -- $(ARGS)
 
 ## Run the user management tests against Neos 9
 test-neos9-user-management:
-	cd $(E2E_DIR) && npm run test:neos9:user-management
+	cd $(E2E_DIR) && npm run test:neos9:user-management -- $(ARGS)
 
 ## Run the user management tests with usernameIsEmail against Neos 9
 test-neos9-username-is-email:
-	cd $(E2E_DIR) && npm run test:neos9:username-is-email
+	cd $(E2E_DIR) && npm run test:neos9:username-is-email -- $(ARGS)
 
 ## Start the neos8 SUT containers
 start-sut-neos8:
