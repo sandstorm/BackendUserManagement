@@ -174,6 +174,9 @@ class UserMailer
             $i18nConfiguration->setCurrentLocale(new Locale($localeIdentifier));
 
             $view = new FusionView();
+            // explicit: without it, Neos 8 derives the package key from the controller context - which is null
+            // when rendering outside of a controller (CLI commands)
+            $view->setPackageKey('Sandstorm.BackendUserManagement');
             $view->setFusionPathPatterns(['resource://Sandstorm.BackendUserManagement/Private/Fusion']);
             $view->setFusionPath(
                 'Sandstorm/BackendUserManagement/UserManagement/Mail/' . str_replace('.', '/', $fusionPath),
