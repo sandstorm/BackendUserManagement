@@ -5,6 +5,7 @@ namespace Sandstorm\BackendUserManagement\Tests\Unit\SecondFactor\Service;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\Tests\UnitTestCase;
 use ParagonIE\ConstantTime\Base64UrlSafe;
+use PHPUnit\Framework\Attributes\Test;
 use Psr\Log\LoggerInterface;
 use Sandstorm\BackendUserManagement\SecondFactor\Domain\Model\SecondFactor;
 use Sandstorm\BackendUserManagement\SecondFactor\Domain\Repository\SecondFactorRepository;
@@ -51,9 +52,7 @@ class PublicKeyCredentialSourceRepositoryAdapterTest extends UnitTestCase
         return $factor;
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function findOneByCredentialIdReturnsTheStoredCredential(): void
     {
         $this->secondFactorRepository->method('findAllByType')
@@ -67,9 +66,7 @@ class PublicKeyCredentialSourceRepositoryAdapterTest extends UnitTestCase
         self::assertSame($rawId, $record->publicKeyCredentialId);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function findOneByCredentialIdReturnsNullForUnknownId(): void
     {
         $this->secondFactorRepository->method('findAllByType')
@@ -78,9 +75,7 @@ class PublicKeyCredentialSourceRepositoryAdapterTest extends UnitTestCase
         self::assertNull($this->adapter->findOneByCredentialId('no-such-credential-id'));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function findAllForUserEntityReturnsOnlyCredentialsWithMatchingUserHandle(): void
     {
         $this->secondFactorRepository->method('findAllByType')->willReturn([

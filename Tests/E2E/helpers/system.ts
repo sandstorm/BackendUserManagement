@@ -25,7 +25,11 @@ export function removeAllUsers() {
   }
 }
 
+// Leave the backend first: a still-open Neos UI gets a 401 on its next background request
+// after the logout and reloads itself (reloadOnAuthTimeoutSaga) -> redirect to /neos/login,
+// which races with (and interrupts) the caller's next page.goto().
 export async function logout(page: Page) {
+  await page.goto('about:blank');
   await page.context().request.post('/neos/logout');
 }
 

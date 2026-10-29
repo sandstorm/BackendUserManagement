@@ -5,6 +5,7 @@ namespace Sandstorm\BackendUserManagement\Tests\Unit\SecondFactor\Service;
 use Neos\Flow\Session\SessionInterface;
 use Neos\Flow\Session\SessionManagerInterface;
 use Neos\Flow\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Sandstorm\BackendUserManagement\SecondFactor\Domain\AuthenticationStatus;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\SecondFactorSessionStorageService;
 
@@ -62,9 +63,8 @@ class SecondFactorSessionStorageServiceTest extends UnitTestCase
      * The container exists (it holds abandoned passwordless options) but carries no
      * authentication status. Reading the status must yield AUTHENTICATION_NEEDED, not crash
      * on the `string` return type with a `null`.
-     *
-     * @test
      */
+    #[Test]
     public function getAuthenticationStatusReturnsAuthenticationNeededWhenStatusKeyMissing(): void
     {
         $this->sessionData[SecondFactorSessionStorageService::SESSION_OBJECT_ID] = [
@@ -81,9 +81,8 @@ class SecondFactorSessionStorageServiceTest extends UnitTestCase
      * The real abandoned-ceremony sequence: a passwordless login seeds the container with only its
      * options, then initialization runs on the next (regular) login. Initialization must recognise
      * the missing status and set it — keying off the status key, not merely the container's presence.
-     *
-     * @test
      */
+    #[Test]
     public function initializeSetsStatusWhenContainerExistsWithoutStatus(): void
     {
         $this->service->startSessionIfNotStarted();
@@ -110,9 +109,8 @@ class SecondFactorSessionStorageServiceTest extends UnitTestCase
     /**
      * Initialization must be idempotent: a completed login (status AUTHENTICATED) must never be
      * downgraded back to AUTHENTICATION_NEEDED by a subsequent request re-running initialization.
-     *
-     * @test
      */
+    #[Test]
     public function initializeDoesNotOverwriteExistingAuthenticatedStatus(): void
     {
         $this->service->setAuthenticationStatus(AuthenticationStatus::AUTHENTICATED);
@@ -125,9 +123,8 @@ class SecondFactorSessionStorageServiceTest extends UnitTestCase
     /**
      * The original happy path: a fresh session with no package container gets initialized to
      * AUTHENTICATION_NEEDED.
-     *
-     * @test
      */
+    #[Test]
     public function initializeInitialisesFreshSessionToNeeded(): void
     {
         $this->service->initializeTwoFactorSessionObject();

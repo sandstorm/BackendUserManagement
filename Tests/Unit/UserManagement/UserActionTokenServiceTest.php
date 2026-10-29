@@ -6,6 +6,7 @@ use Neos\Flow\Security\Account;
 use Neos\Flow\Tests\UnitTestCase;
 use Neos\Neos\Domain\Model\User;
 use Neos\Party\Domain\Model\ElectronicAddress;
+use PHPUnit\Framework\Attributes\Test;
 use Sandstorm\BackendUserManagement\UserManagement\Application\SimpleUserFinder;
 use Sandstorm\BackendUserManagement\UserManagement\Application\UserActionTokenService;
 use Sandstorm\BackendUserManagement\UserManagement\Domain\Model\UserActionToken;
@@ -60,9 +61,7 @@ class UserActionTokenServiceTest extends UnitTestCase
         $this->inject($this->service, 'tokenLifetime', ['resetPassword' => 'PT24H', 'initialPassword' => 'P7D', 'verifyEmail' => 'P7D']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function onlyTheHashOfTheTokenIsStored(): void
     {
         $plainToken = $this->service->issue($this->account, UserActionType::RESET_PASSWORD, 'jane@example.com');
@@ -72,9 +71,7 @@ class UserActionTokenServiceTest extends UnitTestCase
         self::assertArrayNotHasKey($plainToken, $this->tokens);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function issuedTokenIsValidForItsActionOnly(): void
     {
         $plainToken = $this->service->issue($this->account, UserActionType::RESET_PASSWORD, 'jane@example.com');
@@ -83,18 +80,14 @@ class UserActionTokenServiceTest extends UnitTestCase
         self::assertNull($this->service->findValid($plainToken, [UserActionType::VERIFY_EMAIL]));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function unknownOrEmptyTokenIsInvalid(): void
     {
         self::assertNull($this->service->findValid('', UserActionType::passwordActions()));
         self::assertNull($this->service->findValid('does-not-exist', UserActionType::passwordActions()));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function consumedTokenIsInvalid(): void
     {
         $plainToken = $this->service->issue($this->account, UserActionType::RESET_PASSWORD, 'jane@example.com');
@@ -106,9 +99,7 @@ class UserActionTokenServiceTest extends UnitTestCase
         self::assertNull($this->service->findValid($plainToken, UserActionType::passwordActions()));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function expiredTokenIsInvalid(): void
     {
         $plainToken = $this->service->issue($this->account, UserActionType::RESET_PASSWORD, 'jane@example.com');
@@ -118,9 +109,7 @@ class UserActionTokenServiceTest extends UnitTestCase
         self::assertNull($this->service->findValid($plainToken, UserActionType::passwordActions()));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function tokenIsInvalidAfterThePrimaryEmailChanged(): void
     {
         $plainToken = $this->service->issue($this->account, UserActionType::RESET_PASSWORD, 'jane@example.com');
@@ -130,9 +119,7 @@ class UserActionTokenServiceTest extends UnitTestCase
         self::assertNull($this->service->findValid($plainToken, UserActionType::passwordActions()));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function emailComparisonIsCaseInsensitiveAndTrimmed(): void
     {
         $plainToken = $this->service->issue($this->account, UserActionType::RESET_PASSWORD, ' JANE@example.com ');
@@ -140,9 +127,7 @@ class UserActionTokenServiceTest extends UnitTestCase
         self::assertNotNull($this->service->findValid($plainToken, UserActionType::passwordActions()));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function issuingANewTokenInvalidatesOlderTokensOfTheSameAction(): void
     {
         $first = $this->service->issue($this->account, UserActionType::RESET_PASSWORD, 'jane@example.com');
@@ -154,9 +139,7 @@ class UserActionTokenServiceTest extends UnitTestCase
         self::assertNotNull($this->service->findValid($verify, [UserActionType::VERIFY_EMAIL]));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function invalidatePasswordTokensKeepsEmailVerificationTokens(): void
     {
         $reset = $this->service->issue($this->account, UserActionType::RESET_PASSWORD, 'jane@example.com');
@@ -170,9 +153,7 @@ class UserActionTokenServiceTest extends UnitTestCase
         self::assertNotNull($this->service->findValid($verify, [UserActionType::VERIFY_EMAIL]));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function lifetimeComesFromSettings(): void
     {
         self::assertSame(7, $this->service->getLifetime(UserActionType::INITIAL_PASSWORD)->d);

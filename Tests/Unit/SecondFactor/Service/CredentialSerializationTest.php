@@ -4,6 +4,8 @@ namespace Sandstorm\BackendUserManagement\Tests\Unit\SecondFactor\Service;
 
 use Neos\Flow\Tests\UnitTestCase;
 use ParagonIE\ConstantTime\Base64UrlSafe;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\WebAuthnSerializerProvider;
 use Webauthn\CredentialRecord;
 
@@ -52,10 +54,8 @@ class CredentialSerializationTest extends UnitTestCase
         ];
     }
 
-    /**
-     * @test
-     * @dataProvider v4CredentialSourceProvider
-     */
+    #[Test]
+    #[DataProvider('v4CredentialSourceProvider')]
     public function readsV4SerializedCredentialSourceUnderV5(string $secret, string $credentialId, int $counter): void
     {
         $serializer = (new WebAuthnSerializerProvider())->getSerializer();
@@ -72,10 +72,9 @@ class CredentialSerializationTest extends UnitTestCase
      * The write path (used when persisting the counter bump after an assertion, and when storing a
      * freshly registered credential) must produce JSON that the same serializer can read back
      * unchanged, so a saved credential keeps working on the next login.
-     *
-     * @test
-     * @dataProvider v4CredentialSourceProvider
      */
+    #[Test]
+    #[DataProvider('v4CredentialSourceProvider')]
     public function serializedCredentialRecordRoundTrips(string $secret, string $credentialId, int $counter): void
     {
         $serializer = (new WebAuthnSerializerProvider())->getSerializer();

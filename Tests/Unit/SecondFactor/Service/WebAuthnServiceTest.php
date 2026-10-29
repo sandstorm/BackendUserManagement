@@ -5,6 +5,7 @@ namespace Sandstorm\BackendUserManagement\Tests\Unit\SecondFactor\Service;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\Security\Account;
 use Neos\Flow\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\PublicKeyCredentialSourceRepositoryAdapter;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\WebAuthnService;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\WebAuthnSerializerProvider;
@@ -33,9 +34,7 @@ class WebAuthnServiceTest extends UnitTestCase
         $this->inject($this->service, 'persistenceManager', $this->persistenceManager);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function resolvesBackendAccountByUserHandle(): void
     {
         $account = $this->createMock(Account::class);
@@ -48,9 +47,7 @@ class WebAuthnServiceTest extends UnitTestCase
         self::assertSame($account, $this->service->resolveBackendAccountByUserHandle('the-user-handle'));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function throwsWhenNoAccountExistsForUserHandle(): void
     {
         $this->persistenceManager->method('getObjectByIdentifier')->willReturn(null);
@@ -59,9 +56,7 @@ class WebAuthnServiceTest extends UnitTestCase
         $this->service->resolveBackendAccountByUserHandle('unknown-handle');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function throwsWhenAccountIsNotANeosBackendAccount(): void
     {
         $account = $this->createMock(Account::class);
@@ -101,9 +96,8 @@ class WebAuthnServiceTest extends UnitTestCase
      * registering with discoverable=false must NOT demand a resident key or user verification, so
      * a no-PIN security key (touch only) can register. This is the regression that produced the
      * "User authentication required." 400.
-     *
-     * @test
      */
+    #[Test]
     public function registersTouchOnlySecondFactorWhilePasswordlessEnabled(): void
     {
         $account = $this->configureRegistrationService(passwordlessLoginEnabled: true, userVerification: 'discouraged');
@@ -126,9 +120,8 @@ class WebAuthnServiceTest extends UnitTestCase
      * The passkey path is unchanged: opting into a discoverable passkey while passwordless login
      * is enabled forces a resident key and user verification (a verified passkey is itself a full
      * multi-factor login).
-     *
-     * @test
      */
+    #[Test]
     public function registersDiscoverablePasskeyWhilePasswordlessEnabled(): void
     {
         $account = $this->configureRegistrationService(passwordlessLoginEnabled: true, userVerification: 'discouraged');
@@ -148,9 +141,8 @@ class WebAuthnServiceTest extends UnitTestCase
     /**
      * Guard: a discoverable passkey can never be minted while passwordless login is disabled, even
      * if the client asks for one — the credential stays a plain, configured-UV 2nd factor.
-     *
-     * @test
      */
+    #[Test]
     public function ignoresDiscoverableRequestWhilePasswordlessDisabled(): void
     {
         $account = $this->configureRegistrationService(passwordlessLoginEnabled: false, userVerification: 'discouraged');
@@ -168,9 +160,8 @@ class WebAuthnServiceTest extends UnitTestCase
      * The stored `discoverable` flag is derived from the registration options at verify time
      * (single source of truth), so it round-trips with the choice made at options time: a passkey
      * registration is discoverable, a 2nd-factor registration is not.
-     *
-     * @test
      */
+    #[Test]
     public function discoverabilityIsDerivedFromTheRegistrationOptions(): void
     {
         $account = $this->configureRegistrationService(passwordlessLoginEnabled: true);
@@ -187,9 +178,8 @@ class WebAuthnServiceTest extends UnitTestCase
      * Under v5 that (de)serialization goes through the Symfony serializer (createFromString is
      * gone), so a request-options object must survive a serialize -> deserialize round trip
      * unchanged.
-     *
-     * @test
      */
+    #[Test]
     public function requestOptionsRoundTripThroughTheJsonHelpers(): void
     {
         $service = new WebAuthnService();

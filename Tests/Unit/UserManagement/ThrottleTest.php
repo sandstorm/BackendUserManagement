@@ -3,6 +3,7 @@
 namespace Sandstorm\BackendUserManagement\Tests\Unit\UserManagement;
 
 use Neos\Flow\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Sandstorm\BackendUserManagement\UserManagement\Application\Throttle;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\Store\InMemoryStore;
@@ -31,9 +32,7 @@ class ThrottleTest extends UnitTestCase
         };
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function attemptsWithinTheLimitAreAllowed(): void
     {
         self::assertTrue($this->throttle->attempt('jane', 3, 'PT15M'));
@@ -42,9 +41,7 @@ class ThrottleTest extends UnitTestCase
         self::assertFalse($this->throttle->attempt('jane', 3, 'PT15M'));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function bucketsAreCountedSeparately(): void
     {
         self::assertTrue($this->throttle->attempt('jane', 1, 'PT15M'));
@@ -52,9 +49,7 @@ class ThrottleTest extends UnitTestCase
         self::assertTrue($this->throttle->attempt('john', 1, 'PT15M'));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function durationIsConvertedToSeconds(): void
     {
         self::assertSame(900, Throttle::durationInSeconds('PT15M'));
