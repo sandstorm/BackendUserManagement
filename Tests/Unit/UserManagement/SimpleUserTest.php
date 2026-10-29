@@ -3,14 +3,13 @@
 namespace Sandstorm\BackendUserManagement\Tests\Unit\UserManagement;
 
 use Neos\Flow\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\SimpleAccount;
 use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\SimpleUser;
 
 class SimpleUserTest extends UnitTestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function searchMatchesNameEmailAndUsernameCaseInsensitive(): void
     {
         $user = $this->user([$this->account('jdoe', true)]);
@@ -22,18 +21,14 @@ class SimpleUserTest extends UnitTestCase
         self::assertFalse($user->matchesSearchTerm('somebody else'));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function userIsActiveIfOneAccountIsActive(): void
     {
         self::assertTrue($this->user([$this->account('a', false), $this->account('b', true)])->isActive());
         self::assertFalse($this->user([$this->account('a', false)])->isActive());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function rolesAndSecondFactorsAreAggregatedOverAccounts(): void
     {
         $user = $this->user([
@@ -45,9 +40,7 @@ class SimpleUserTest extends UnitTestCase
         self::assertSame(3, $user->getSecondFactorCount());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function lastLoginIsTheLatestOfAllAccounts(): void
     {
         $user = $this->user([
@@ -59,9 +52,7 @@ class SimpleUserTest extends UnitTestCase
         self::assertEquals(new \DateTime('2026-03-01'), $user->getLastSuccessfulAuthentication());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function initialPasswordMakesSenseOnlyForAnAccountWithoutPassword(): void
     {
         self::assertFalse($this->user([$this->account('a', true)])->hasAccountWithoutPassword());

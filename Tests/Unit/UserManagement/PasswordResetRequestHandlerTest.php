@@ -7,6 +7,7 @@ use Neos\Flow\Security\Account;
 use Neos\Flow\Tests\UnitTestCase;
 use Neos\Neos\Domain\Model\User;
 use Neos\Party\Domain\Model\ElectronicAddress;
+use PHPUnit\Framework\Attributes\Test;
 use Psr\Log\LoggerInterface;
 use Sandstorm\BackendUserManagement\UserManagement\Application\PasswordResetRequestHandler;
 use Sandstorm\BackendUserManagement\UserManagement\Application\SimpleUserFinder;
@@ -105,9 +106,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         ]);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function usernameSendsMailToTheUsersEmail(): void
     {
         self::assertTrue($this->handler->handle('john', '127.0.0.1'));
@@ -115,9 +114,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         self::assertSame([['recipient' => 'john@example.com', 'links' => [['username' => 'john', 'token' => 'token-john']]]], $this->sentMails);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function emailMatchingSeveralAccountsSendsOneMailWithOneLinkPerUsername(): void
     {
         $this->handler->handle(' Shared@Example.com ', '127.0.0.1');
@@ -127,9 +124,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         self::assertSame(['jane', 'jane-admin'], array_column($this->sentMails[0]['links'], 'username'));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function unknownInputSendsNoMail(): void
     {
         // not throttled either - the answer must not differ from the one for an existing account
@@ -140,9 +135,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         self::assertSame([], $this->sentMails);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function unvalidatedEmailIsIgnoredWhenValidationIsRequired(): void
     {
         $this->handler->handle('unvalidated', '127.0.0.1');
@@ -151,9 +144,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         self::assertSame([], $this->sentMails);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function unvalidatedEmailIsLoggedWhenValidationIsRequired(): void
     {
         $securityLogger = $this->createMock(LoggerInterface::class);
@@ -166,9 +157,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         $this->handler->handle('unvalidated@example.com', '127.0.0.1');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function unvalidatedEmailIsUsedWhenValidationIsNotRequired(): void
     {
         $this->inject($this->handler, 'requireValidatedEmail', false);
@@ -178,9 +167,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         self::assertCount(1, $this->sentMails);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function throttledRequestSendsNoMail(): void
     {
         $this->throttleAllows = false;
@@ -189,9 +176,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         self::assertSame([], $this->sentMails);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function requestThrottledPerIpDoesNotCountForTheIdentifier(): void
     {
         $this->throttleAllows = false;
@@ -202,9 +187,7 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         self::assertSame(['forgotPassword:ip:127.0.0.1'], $this->throttleAttempts);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function disabledIpThrottleOnlyCountsTheIdentifier(): void
     {
         $this->inject($this->handler, 'throttleSettings', [
