@@ -25,6 +25,7 @@ use Sandstorm\BackendUserManagement\UserManagement\Application\UserCommandServic
 use Sandstorm\BackendUserManagement\UserManagement\Application\UserMailer;
 use Sandstorm\BackendUserManagement\UserManagement\Application\UserManagementException;
 use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\SimpleUser;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\UsernameChange;
 use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 
 /**
@@ -245,15 +246,24 @@ class ModuleController extends AbstractModuleController
             'isSelf' => $isSelf,
             'canImpersonate' => !$isSelf && !$this->impersonateService->isActive() && $this->privilegeManager->isPrivilegeTargetGranted('Neos.Neos:Impersonate'),
             'usernameIsEmail' => $this->usernameIsEmail,
+            'mayMarkEmailValidated' => $this->mayMarkEmailValidated($userId),
             'passwordMinimumLength' => $this->passwordPolicy['minimumLength'],
             'flashMessages' => $this->flushFlashMessages(),
         ]);
     }
 
-    public function updateAction(string $userId, string $firstName, string $lastName, string $email, bool $active = false): void
+    /**
+     * @param bool $markEmailValidated validate the (new or still unvalidated) email right away instead of sending a
+     *                                 confirmation mail
+     */
+    public function updateAction(string $userId, string $firstName, string $lastName, string $email, bool $active = false, bool $markEmailValidated = false): void
     {
         $user = $this->requireEditableUser($userId);
         $isSelf = $userId === $this->currentUserId();
+        if ($markEmailValidated && !$this->mayMarkEmailValidated($userId)) {
+            $this->addTranslatedFlashMessage('error.markOwnEmailValidated', [], Message::SEVERITY_ERROR);
+            $this->redirect('edit', null, null, ['userId' => $userId]);
+        }
 
         try {
             $emailChanged = $this->userCommandService->updateUser($user, $firstName, $lastName, $email);
@@ -268,7 +278,14 @@ class ModuleController extends AbstractModuleController
         $this->userPersistenceManager->persistAll();
         $this->addTranslatedFlashMessage('flash.userUpdated', [$user->getName()->getFullName()]);
 
-        if ($emailChanged) {
+        if ($markEmailValidated) {
+            if ($simpleUser !== null && !$simpleUser->emailApproved) {
+                $usernameChanges = $this->userCommandService->markEmailValidated($user);
+                $this->userPersistenceManager->persistAll();
+                $this->addTranslatedFlashMessage('flash.emailMarkedValidated');
+                $this->addUsernameChangeFlashMessages($usernameChanges);
+            }
+        } elseif ($emailChanged) {
             $this->sendMail(fn () => $this->userCommandService->sendEmailVerificationMail($user), 'flash.emailVerificationMailSent');
         }
         $this->redirect('edit', null, null, ['userId' => $userId]);
@@ -335,13 +352,13 @@ class ModuleController extends AbstractModuleController
     public function markEmailValidatedAction(string $userId): void
     {
         $user = $this->requireEditableUser($userId);
+        if (!$this->mayMarkEmailValidated($userId)) {
+            $this->addTranslatedFlashMessage('error.markOwnEmailValidated', [], Message::SEVERITY_ERROR);
+            $this->redirect('edit', null, null, ['userId' => $userId]);
+        }
         $usernameChanges = $this->userCommandService->markEmailValidated($user);
         $this->addTranslatedFlashMessage('flash.emailMarkedValidated');
-        foreach ($usernameChanges as $usernameChange) {
-            $usernameChange->changed
-                ? $this->addTranslatedFlashMessage('flash.usernameChanged', [$usernameChange->oldUsername, $usernameChange->newUsername])
-                : $this->addTranslatedFlashMessage('flash.usernameNotChanged', [$usernameChange->oldUsername, $usernameChange->newUsername], Message::SEVERITY_WARNING);
-        }
+        $this->addUsernameChangeFlashMessages($usernameChanges);
         $this->redirect('edit', null, null, ['userId' => $userId]);
     }
 
@@ -440,6 +457,26 @@ class ModuleController extends AbstractModuleController
     /**
      * @param \Closure(): void $send
      */
+    /**
+     * With usernameIsEmail, validating the own email may rename the own account - which logs you out mid-request.
+     */
+    private function mayMarkEmailValidated(string $userId): bool
+    {
+        return !($this->usernameIsEmail && $userId === $this->currentUserId());
+    }
+
+    /**
+     * @param list<UsernameChange> $usernameChanges
+     */
+    private function addUsernameChangeFlashMessages(array $usernameChanges): void
+    {
+        foreach ($usernameChanges as $usernameChange) {
+            $usernameChange->changed
+                ? $this->addTranslatedFlashMessage('flash.usernameChanged', [$usernameChange->oldUsername, $usernameChange->newUsername])
+                : $this->addTranslatedFlashMessage('flash.usernameNotChanged', [$usernameChange->oldUsername, $usernameChange->newUsername], Message::SEVERITY_WARNING);
+        }
+    }
+
     private function sendMail(\Closure $send, string $successMessageId): void
     {
         try {

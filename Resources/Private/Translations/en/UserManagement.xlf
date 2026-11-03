@@ -110,6 +110,9 @@
       <trans-unit id="error.nothingToDelete" xml:space="preserve">
         <source>No users selected that you may delete. You cannot delete yourself.</source>
       </trans-unit>
+      <trans-unit id="error.markOwnEmailValidated" xml:space="preserve">
+        <source>With usernameIsEmail, you cannot validate your own email address here - your username could change and log you out. Use the confirmation mail.</source>
+      </trans-unit>
       <trans-unit id="error.editingNotAllowed" xml:space="preserve">
         <source>You may not edit this user, because they have roles you do not have.</source>
       </trans-unit>
@@ -278,11 +281,17 @@
       <trans-unit id="module.edit.emailVerificationStatus" xml:space="preserve">
         <source>Email verification status</source>
       </trans-unit>
+      <trans-unit id="module.edit.usernameHint" xml:space="preserve">
+        <source>Cannot be changed - see the email hint.</source>
+      </trans-unit>
       <trans-unit id="module.edit.emailChangeHint" xml:space="preserve">
-        <source>Changing the email address resets its validation and sends a confirmation mail.</source>
+        <source>Changing the email address resets its validation and sends a confirmation mail - unless it is marked as validated.</source>
       </trans-unit>
       <trans-unit id="module.edit.emailChangeHintUsernameIsEmail" xml:space="preserve">
-        <source>Changing the email address resets its validation and sends a confirmation mail. Once the new address is confirmed, it becomes the username and the user is logged out.</source>
+        <source>Changing the email address resets its validation and sends a confirmation mail - unless it is marked as validated. Usernames that equal the old address are changed to the new one once it is validated, and the user is logged out. Other usernames stay unchanged.</source>
+      </trans-unit>
+      <trans-unit id="module.edit.markEmailValidatedOnSave" xml:space="preserve">
+        <source>Mark as validated (no confirmation mail)</source>
       </trans-unit>
       <trans-unit id="module.edit.activeHint" xml:space="preserve">
         <source>Inactive users cannot log in.</source>

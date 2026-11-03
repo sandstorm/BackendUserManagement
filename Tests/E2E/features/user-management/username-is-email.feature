@@ -32,3 +32,11 @@ Feature: With usernameIsEmail, the username follows a changed email once it is v
     And I click "mark-email-validated" in the user details
     Then the user list should contain "jane@example.com"
     And the user list should contain "taken@example.com"
+
+  Scenario: Marking the changed email as validated changes the username right away
+    When I log in with username "admin" and password "password"
+    And I open the user "jane@example.com" in the user management module
+    And I change the email to "jane.doe@example.com" and mark it as validated
+    Then the user list should contain "jane.doe@example.com"
+    # only the mail with the new username, no confirmation mail
+    And "jane.doe@example.com" should receive 1 mail

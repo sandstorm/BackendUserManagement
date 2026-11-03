@@ -146,6 +146,10 @@
         <source>No users selected that you may delete. You cannot delete yourself.</source>
         <target>Keine löschbaren Benutzer*innen ausgewählt. Sie können sich nicht selbst löschen.</target>
       </trans-unit>
+      <trans-unit id="error.markOwnEmailValidated" xml:space="preserve">
+        <source>With usernameIsEmail, you cannot validate your own email address here - your username could change and log you out. Use the confirmation mail.</source>
+        <target>Mit usernameIsEmail können Sie Ihre eigene E-Mail-Adresse hier nicht validieren - Ihr Benutzername könnte sich ändern und Sie würden abgemeldet. Nutzen Sie die Bestätigungs-Mail.</target>
+      </trans-unit>
       <trans-unit id="error.editingNotAllowed" xml:space="preserve">
         <source>You may not edit this user, because they have roles you do not have.</source>
         <target>Sie dürfen diese Person nicht bearbeiten, da sie Rollen hat, die Sie nicht haben.</target>
@@ -370,13 +374,21 @@
         <source>Email verification status</source>
         <target>Status der E-Mail-Validierung</target>
       </trans-unit>
+      <trans-unit id="module.edit.usernameHint" xml:space="preserve">
+        <source>Cannot be changed - see the email hint.</source>
+        <target>Nicht änderbar - siehe Hinweis zur E-Mail-Adresse.</target>
+      </trans-unit>
       <trans-unit id="module.edit.emailChangeHint" xml:space="preserve">
-        <source>Changing the email address resets its validation and sends a confirmation mail.</source>
-        <target>Eine Änderung der E-Mail-Adresse setzt die Validierung zurück und sendet eine Bestätigungs-Mail.</target>
+        <source>Changing the email address resets its validation and sends a confirmation mail - unless it is marked as validated.</source>
+        <target>Eine Änderung der E-Mail-Adresse setzt die Validierung zurück und sendet eine Bestätigungs-Mail - außer sie wird als validiert markiert.</target>
       </trans-unit>
       <trans-unit id="module.edit.emailChangeHintUsernameIsEmail" xml:space="preserve">
-        <source>Changing the email address resets its validation and sends a confirmation mail. Once the new address is confirmed, it becomes the username and the user is logged out.</source>
-        <target>Eine Änderung der E-Mail-Adresse setzt die Validierung zurück und sendet eine Bestätigungs-Mail. Sobald die neue Adresse bestätigt ist, wird sie zum Benutzernamen und der*die Benutzer*in wird abgemeldet.</target>
+        <source>Changing the email address resets its validation and sends a confirmation mail - unless it is marked as validated. Usernames that equal the old address are changed to the new one once it is validated, and the user is logged out. Other usernames stay unchanged.</source>
+        <target>Eine Änderung der E-Mail-Adresse setzt die Validierung zurück und sendet eine Bestätigungs-Mail - außer sie wird als validiert markiert. Benutzernamen, die der alten Adresse entsprechen, werden nach der Validierung der neuen Adresse auf diese geändert und der*die Benutzer*in wird abgemeldet. Andere Benutzernamen bleiben unverändert.</target>
+      </trans-unit>
+      <trans-unit id="module.edit.markEmailValidatedOnSave" xml:space="preserve">
+        <source>Mark as validated (no confirmation mail)</source>
+        <target>Als validiert markieren (keine Bestätigungs-Mail)</target>
       </trans-unit>
       <trans-unit id="module.edit.activeHint" xml:space="preserve">
         <source>Inactive users cannot log in.</source>
