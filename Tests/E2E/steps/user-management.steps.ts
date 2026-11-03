@@ -138,6 +138,16 @@ When('I open the user {string} in the user management module', async ({ page }, 
 
 When('I change the email to {string}', async ({ page }, email: string) => {
   await page.locator('[data-test-id="email"]').fill(email);
+  await expect(page.locator('[data-test-id="mark-email-validated-on-save"]')).not.toBeChecked();
+  await page.locator('[data-test-id="save-user"]').click();
+  await page.waitForLoadState('networkidle');
+});
+
+When('I change the email to {string} and mark it as validated', async ({ page }, email: string) => {
+  await page.locator('[data-test-id="email"]').fill(email);
+  // the Neos module CSS moves the real checkbox off-screen (left: -9999px) - click its label like a user does
+  await page.locator('label[for="markEmailValidated"]').click();
+  await expect(page.locator('[data-test-id="mark-email-validated-on-save"]')).toBeChecked();
   await page.locator('[data-test-id="save-user"]').click();
   await page.waitForLoadState('networkidle');
 });

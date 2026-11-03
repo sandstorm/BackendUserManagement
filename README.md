@@ -186,7 +186,7 @@ Administrators create users without a password; the user gets a link to set one 
 ### Email validation
 
 The user's primary email (Neos.Party `ElectronicAddress`, `approved` = validated). Changing it resets validation and
-sends a confirmation mail (lifetime: `tokenLifetime.verifyEmail`); admins can also mark it as validated.
+sends a confirmation mail - unless the admin marks it as validated in the edit form (lifetime: `tokenLifetime.verifyEmail`); admins can also mark it as validated.
 
 ### Username follows the email
 
@@ -199,8 +199,9 @@ Sandstorm:
 
 New accounts are named after the email (username field hidden). On email change, accounts named after the old address
 are renamed once the new one is validated; the user is logged out everywhere and gets a mail with the new username.
-If the name is taken, the rename is skipped (flash message, security log). On Neos 8 the personal workspace is
-migrated with its unpublished changes.
+If the name is taken, the rename is skipped (flash message, security log). Accounts whose username is not the old
+address (e.g. created before the setting was enabled, or users without an email) are never renamed. On Neos 8 the
+personal workspace is migrated with its unpublished changes.
 
 ### User management module simplified UI
 
