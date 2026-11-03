@@ -196,6 +196,24 @@ class SimpleUserFinder
     }
 
     /**
+     * Managed accounts not named after the user's primary email (case-insensitive) - empty without a validated one.
+     *
+     * @return list<Account>
+     */
+    public function getAccountsNotNamedAfterEmail(User $user): array
+    {
+        $primaryEmail = $this->getPrimaryEmail($user);
+        if ($primaryEmail === null || !$primaryEmail->isApproved()) {
+            return [];
+        }
+        $email = self::normalizeEmail($primaryEmail->getIdentifier());
+        return array_values(array_filter(
+            $this->getManagedAccounts($user),
+            fn (Account $account) => self::normalizeEmail($account->getAccountIdentifier()) !== $email
+        ));
+    }
+
+    /**
      * @return list<Account>
      */
     public function getManagedAccounts(User $user): array

@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { createBdd } from 'playwright-bdd';
 import { firstLinkInMailTo, linksInMail, waitForMailsTo, mailsTo } from '../helpers/mailpit.ts';
-import { sendPasswordMailViaCli, setEmail, workspaceNames } from '../helpers/system.ts';
+import { sendPasswordMailViaCli, setEmail, useEmailAsUsernameViaCli, workspaceNames } from '../helpers/system.ts';
 import { state } from '../helpers/state.ts';
 
 const { Given, When, Then } = createBdd();
@@ -16,6 +16,10 @@ Given('user {string} has the validated email {string}', async ({}, username: str
 
 Given('user {string} has the unvalidated email {string}', async ({}, username: string, email: string) => {
   setEmail(username, email, false);
+});
+
+When('the usernames are changed to the email via CLI', async () => {
+  useEmailAsUsernameViaCli();
 });
 
 Given('an initial password mail was sent to {string} via CLI', async ({}, username: string) => {

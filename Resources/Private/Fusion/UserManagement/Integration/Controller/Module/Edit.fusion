@@ -134,6 +134,15 @@ Sandstorm.BackendUserManagement.UserManagement.ModuleController.edit = Sandstorm
                 <h2>
                     <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.edit.accounts"/>
                 </h2>
+                <div class="neos-user-management__callout" @if={usernameIsEmail && !isSelf && user.emailApproved && Array.length(user.usernamesDifferentFromEmail) > 0}>
+                    <p class="neos-user-management__hint">
+                        <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.edit.useEmailAsUsernameHint"
+                                                                                        arguments={[String.htmlSpecialChars(user.primaryEmail)]}/>
+                    </p>
+                    <Sandstorm.BackendUserManagement:UserManagement.Component.ActionButton
+                        action="useEmailAsUsername" arguments={userArguments} testId="use-email-as-username"
+                        label={I18n.id('module.edit.useEmailAsUsername').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}/>
+                </div>
                 <Neos.Fusion:Loop items={user.accounts} itemName="account" iterationName="accountIteration">
                     <Sandstorm.BackendUserManagement:UserManagement.Component.AccountEditor
                         account={account}
@@ -185,20 +194,23 @@ prototype(Sandstorm.BackendUserManagement:UserManagement.Component.AccountEditor
     renderer = afx`
         <div class="neos-user-management__account" data-test-id="account">
             <h3>{String.htmlSpecialChars(props.account.accountIdentifier)} <small>({props.account.authenticationProviderName})</small></h3>
-            <p>
+            <p class="neos-user-management__hint neos-user-management__account-meta">
                 <Sandstorm.BackendUserManagement:UserManagement.Translate id="field.lastLogin" />: {props.account.lastSuccessfulAuthentication ? Date.format(props.account.lastSuccessfulAuthentication, 'Y-m-d H:i') : '-'}
             </p>
-            <Neos.Fusion.Form:Form form.target.action="updateAccountRoles" form.target.arguments={Array.set(props.userArguments, 'accountId', props.account.accountId)} attributes.class="neos-user-management__form">
+            <Neos.Fusion.Form:Form form.target.action="updateAccountRoles" form.target.arguments={Array.set(props.userArguments, 'accountId', props.account.accountId)}
+                                   attributes.class="neos-user-management__form" attributes.id={'account-' + props.index + '-roles'}>
                 <Sandstorm.BackendUserManagement:UserManagement.Component.FormField labelId="field.roles">
                     <Sandstorm.BackendUserManagement:UserManagement.Component.RoleCheckboxes roles={props.roles} selectedRoleIdentifiers={props.account.roleIdentifiers} idPrefix={'account-' + props.index + '-role'} />
                 </Sandstorm.BackendUserManagement:UserManagement.Component.FormField>
-                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary" attributes.data-test-id="save-roles">
-                    <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.edit.saveRoles" />
-                </Neos.Fusion.Form:Button>
             </Neos.Fusion.Form:Form>
-            <Sandstorm.BackendUserManagement:UserManagement.Component.ActionButton @if={props.canImpersonate && props.account.active}
-                action="impersonate" arguments={Array.set(props.userArguments, 'accountId', props.account.accountId)} testId="impersonate"
-                label={I18n.id('module.edit.impersonate').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()} />
+            <div class="neos-user-management__actions">
+                <button type="submit" form={'account-' + props.index + '-roles'} class="neos-button neos-button-primary" data-test-id="save-roles">
+                    <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.edit.saveRoles" />
+                </button>
+                <Sandstorm.BackendUserManagement:UserManagement.Component.ActionButton @if={props.canImpersonate && props.account.active}
+                    action="impersonate" arguments={Array.set(props.userArguments, 'accountId', props.account.accountId)} testId="impersonate"
+                    label={I18n.id('module.edit.impersonate').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()} />
+            </div>
         </div>
     `
 }

@@ -33,8 +33,9 @@ class UserMailer
     /**
      * Paths of the public routes, see Configuration/Routes.yaml
      */
-    public const string SET_PASSWORD_PATH = '/neos/password/set/';
-    public const string CONFIRM_EMAIL_PATH = '/neos/email/confirm/';
+    private const string SET_PASSWORD_PATH = '/neos/password/set/';
+    private const string CONFIRM_EMAIL_PATH = '/neos/email/confirm/';
+    private const string LOGIN_PATH = '/neos/login';
 
     /**
      * Flowpack.JobQueue.Common queue, see Configuration/Settings.UserManagement.yaml
@@ -108,15 +109,17 @@ class UserMailer
     /**
      * @param list<UsernameChange> $usernameChanges
      */
-    public function sendUsernameChanged(string $recipient, User $user, array $usernameChanges): void
+    public function sendUsernameChanged(string $recipient, User $user, array $usernameChanges, bool $emailConfirmed): void
     {
         $this->send($recipient, $user, 'usernameChanged', [
+            'emailConfirmed' => $emailConfirmed,
             'oldUsernames' => implode(
                 ', ',
                 array_map(fn(UsernameChange $change) => $change->oldUsername, $usernameChanges),
             ),
             'newUsername' => $usernameChanges[0]->newUsername,
             'name' => $user->getName()->getFullName(),
+            'loginUri' => $this->buildUri(self::LOGIN_PATH),
         ]);
     }
 

@@ -362,6 +362,25 @@ class ModuleController extends AbstractModuleController
         $this->redirect('edit', null, null, ['userId' => $userId]);
     }
 
+    public function useEmailAsUsernameAction(string $userId): void
+    {
+        $user = $this->requireEditableUser($userId);
+        // the rename logs the user out - not in the middle of your own request
+        if ($userId === $this->currentUserId()) {
+            $this->addTranslatedFlashMessage('error.useEmailAsUsernameSelf', [], Message::SEVERITY_ERROR);
+            $this->redirect('edit', null, null, ['userId' => $userId]);
+        }
+        try {
+            $usernameChanges = $this->userCommandService->useEmailAsUsername($user);
+        } catch (UserManagementException $e) {
+            $this->addTranslatedFlashMessage($e->getMessage(), [], Message::SEVERITY_ERROR);
+            $this->redirect('edit', null, null, ['userId' => $userId]);
+        }
+        $this->userPersistenceManager->persistAll();
+        $this->addUsernameChangeFlashMessages($usernameChanges);
+        $this->redirect('edit', null, null, ['userId' => $userId]);
+    }
+
     public function resetSecondFactorsAction(string $userId): void
     {
         $user = $this->requireEditableUser($userId);
@@ -455,9 +474,6 @@ class ModuleController extends AbstractModuleController
     }
 
     /**
-     * @param \Closure(): void $send
-     */
-    /**
      * With usernameIsEmail, validating the own email may rename the own account - which logs you out mid-request.
      */
     private function mayMarkEmailValidated(string $userId): bool
@@ -477,6 +493,9 @@ class ModuleController extends AbstractModuleController
         }
     }
 
+    /**
+     * @param \Closure(): void $send
+     */
     private function sendMail(\Closure $send, string $successMessageId): void
     {
         try {

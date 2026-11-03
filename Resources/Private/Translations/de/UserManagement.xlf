@@ -154,6 +154,18 @@
         <source>You may not edit this user, because they have roles you do not have.</source>
         <target>Sie dürfen diese Person nicht bearbeiten, da sie Rollen hat, die Sie nicht haben.</target>
       </trans-unit>
+      <trans-unit id="error.usernameIsEmailDisabled" xml:space="preserve">
+        <source>Usernames do not follow the email address (usernameIsEmail is disabled).</source>
+        <target>Benutzernamen folgen nicht der E-Mail-Adresse (usernameIsEmail ist deaktiviert).</target>
+      </trans-unit>
+      <trans-unit id="error.emailNotValidated" xml:space="preserve">
+        <source>The email address has not been validated yet.</source>
+        <target>Die E-Mail-Adresse ist noch nicht validiert.</target>
+      </trans-unit>
+      <trans-unit id="error.useEmailAsUsernameSelf" xml:space="preserve">
+        <source>You cannot change your own username here, it would log you out.</source>
+        <target>Sie können Ihren eigenen Benutzernamen hier nicht ändern, Sie würden dabei abgemeldet.</target>
+      </trans-unit>
       <trans-unit id="warning.mailFromMissing" xml:space="preserve">
         <source>No sender address is configured (Sandstorm.BackendUserManagement.userManagement.mail.from.address) - no mails can be sent.</source>
         <target>Es ist keine Absendeadresse konfiguriert (Sandstorm.BackendUserManagement.userManagement.mail.from.address) - es können keine Mails gesendet werden.</target>
@@ -418,6 +430,14 @@
         <source>Accounts</source>
         <target>Konten</target>
       </trans-unit>
+      <trans-unit id="module.edit.useEmailAsUsername" xml:space="preserve">
+        <source>Use email address as username</source>
+        <target>E-Mail-Adresse als Benutzernamen verwenden</target>
+      </trans-unit>
+      <trans-unit id="module.edit.useEmailAsUsernameHint" xml:space="preserve">
+        <source>Renames the accounts to {0}. The user is logged out everywhere and gets a mail with the new username.</source>
+        <target>Benennt die Konten in {0} um. Der*die Benutzer*in wird überall abgemeldet und erhält eine Mail mit dem neuen Benutzernamen.</target>
+      </trans-unit>
       <trans-unit id="module.edit.saveRoles" xml:space="preserve">
         <source>Save roles</source>
         <target>Rollen speichern</target>
@@ -522,9 +542,33 @@
         <source>Your username has changed</source>
         <target>Ihr Benutzername wurde geändert</target>
       </trans-unit>
-      <trans-unit id="mail.usernameChanged.body" xml:space="preserve">
-        <source>your email address has been confirmed. From now on, log in with the username {0} (previously: {1}).</source>
-        <target>Ihre E-Mail-Adresse wurde bestätigt. Melden Sie sich ab sofort mit dem Benutzernamen {0} an (bisher: {1}).</target>
+      <trans-unit id="mail.usernameChanged.reasonEmailConfirmed" xml:space="preserve">
+        <source>your new email address has been confirmed. As you log in with your email address, your username has changed with it.</source>
+        <target>Ihre neue E-Mail-Adresse wurde bestätigt. Da Sie sich mit Ihrer E-Mail-Adresse anmelden, hat sich Ihr Benutzername mit ihr geändert.</target>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.reasonAligned" xml:space="preserve">
+        <source>an administrator has changed your username to your email address.</source>
+        <target>eine*r Administrator*in hat Ihren Benutzernamen auf Ihre E-Mail-Adresse umgestellt.</target>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.newUsername" xml:space="preserve">
+        <source>From now on, log in with:</source>
+        <target>Melden Sie sich ab sofort an mit:</target>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.previously" xml:space="preserve">
+        <source>previously: {0}</source>
+        <target>bisher: {0}</target>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.passwordUnchanged" xml:space="preserve">
+        <source>Your password and your second factors (authenticator app, passkeys) stay the same.</source>
+        <target>Ihr Passwort und Ihre zweiten Faktoren (Authenticator-App, Passkeys) bleiben unverändert.</target>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.button" xml:space="preserve">
+        <source>Log in</source>
+        <target>Anmelden</target>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.unexpected" xml:space="preserve">
+        <source>If you did not expect this change, please contact your administrator.</source>
+        <target>Falls Sie diese Änderung nicht erwartet haben, wenden Sie sich bitte an Ihre*n Administrator*in.</target>
       </trans-unit>
       <trans-unit id="mail.usernameChanged.loggedOut" xml:space="preserve">
         <source>For security reasons, you have been logged out everywhere.</source>

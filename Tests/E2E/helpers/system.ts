@@ -57,6 +57,13 @@ export function sendPasswordMailViaCli(kind: 'initialpassword' | 'reset', userna
   )
 }
 
+export function useEmailAsUsernameViaCli(username?: string) {
+  execSync(
+    `docker exec -u www-data -w /app ${CONTAINER} bash -c "./flow usermanagement:useemailasusername${username ? ` --username ${username}` : ''}"`,
+    { stdio: 'ignore', cwd: dirname('.') }
+  )
+}
+
 // The forgot-password throttle (rate limiter state in a Flow cache) outlives a scenario.
 export function clearUserManagementThrottle() {
   execSync(

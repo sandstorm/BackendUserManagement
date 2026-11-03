@@ -12,10 +12,11 @@ use Sandstorm\BackendUserManagement\UserManagement\Application\SimpleUserFinder;
 use Sandstorm\BackendUserManagement\UserManagement\Application\UserActionTokenService;
 use Sandstorm\BackendUserManagement\UserManagement\Application\UserCommandService;
 use Sandstorm\BackendUserManagement\UserManagement\Application\UserManagementException;
+use Sandstorm\BackendUserManagement\UserManagement\Domain\Dto\SimpleUser;
 use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 
 /**
- * User management: send password mails, prune tokens, report duplicate emails.
+ * User management: send password mails, prune tokens, report duplicate emails, align usernames with emails.
  *
  * Links in mails are built from Neos.Flow.http.baseUri - it must be configured for these commands.
  */
@@ -33,7 +34,7 @@ class UserManagementCommandController extends CommandController
     #[Flow\Inject]
     protected PersistenceManagerInterface $persistenceManager;
 
-    /** @var array{enabled: bool} */
+    /** @var array{enabled: bool, usernameIsEmail: bool} */
     #[Flow\InjectConfiguration(path: 'userManagement')]
     protected array $settings;
 
@@ -88,6 +89,65 @@ class UserManagementCommandController extends CommandController
         }
         $this->persistenceManager->persistAll();
         $this->outputLine('<success>Primary email of %s set to %s (%s).</success>', [$username, $email, $validated ? 'validated' : 'not validated']);
+    }
+
+    /**
+     * Rename accounts to their user's validated email (usernameIsEmail)
+     *
+     * For accounts created before usernameIsEmail was enabled. Accounts of users without a validated primary email are
+     * skipped, as are names already taken. Renamed users are logged out everywhere and get a mail with their new
+     * username; on Neos 8 the personal workspace is migrated. Run with --dry-run first.
+     *
+     * @param string|null $username only the user with this account identifier (default: all users)
+     * @param bool $dryRun only show what would be renamed
+     */
+    public function useEmailAsUsernameCommand(?string $username = null, bool $dryRun = false): void
+    {
+        if (!$this->settings['usernameIsEmail']) {
+            $this->outputLine('<error>usernameIsEmail is disabled (Sandstorm.BackendUserManagement.userManagement.usernameIsEmail).</error>');
+            $this->quit(1);
+        }
+        $users = $username !== null
+            ? [$this->findUser($username, null)]
+            : array_filter(array_map(
+                fn (SimpleUser $simpleUser) => $this->simpleUserFinder->findUserEntityById($simpleUser->userId),
+                $this->simpleUserFinder->findAll()
+            ));
+
+        $rows = [];
+        $skipped = 0;
+        foreach ($users as $user) {
+            $primaryEmail = $this->simpleUserFinder->getPrimaryEmail($user);
+            $accounts = $this->simpleUserFinder->getAccountsNotNamedAfterEmail($user);
+            if ($primaryEmail === null || !$primaryEmail->isApproved()) {
+                $skipped++;
+                continue;
+            }
+            if ($accounts === []) {
+                continue;
+            }
+            $email = $primaryEmail->getIdentifier();
+            if ($dryRun) {
+                foreach ($accounts as $account) {
+                    $canRename = $this->userCommandService->canRenameAccount($account, $email);
+                    $rows[] = [$user->getName()->getFullName(), $account->getAccountIdentifier(), $email, $canRename ? 'would be renamed' : 'name taken'];
+                }
+                continue;
+            }
+            foreach ($this->userCommandService->useEmailAsUsername($user) as $usernameChange) {
+                $rows[] = [$user->getName()->getFullName(), $usernameChange->oldUsername, $usernameChange->newUsername, $usernameChange->changed ? 'renamed' : 'name taken'];
+            }
+            $this->persistenceManager->persistAll();
+        }
+
+        if ($rows === []) {
+            $this->outputLine('<success>No accounts to rename.</success>');
+        } else {
+            $this->output->outputTable($rows, ['Name', 'Username', 'New username', 'Status']);
+        }
+        if ($skipped > 0) {
+            $this->outputLine('%d user(s) skipped: no validated email (see the user management module, "users without a validated email").', [$skipped]);
+        }
     }
 
     /**

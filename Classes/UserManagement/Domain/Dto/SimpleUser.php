@@ -60,6 +60,20 @@ final class SimpleUser
     }
 
     /**
+     * Usernames differing from the primary email (case-insensitive) - all of them without an email.
+     *
+     * @return list<string>
+     */
+    public function getUsernamesDifferentFromEmail(): array
+    {
+        $email = mb_strtolower(trim($this->primaryEmail ?? ''));
+        return array_values(array_filter(
+            $this->getAccountIdentifiers(),
+            fn (string $username) => mb_strtolower(trim($username)) !== $email
+        ));
+    }
+
+    /**
      * @return list<string>
      */
     public function getRoleIdentifiers(): array

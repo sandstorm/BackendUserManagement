@@ -97,7 +97,7 @@ prototype(Sandstorm.BackendUserManagement:UserManagement.Component.UserRow) < pr
     usernameIsEmail = false
 
     // with usernameIsEmail, only usernames differing from the email are shown (e.g. accounts created before)
-    otherUsernames = ${Array.filter(this.user.accountIdentifiers, username => String.toLowerCase(username) != String.toLowerCase(this.user.primaryEmail))}
+    otherUsernames = ${this.user.usernamesDifferentFromEmail}
 
     editUri = Neos.Fusion:UriBuilder {
         action = 'edit'
