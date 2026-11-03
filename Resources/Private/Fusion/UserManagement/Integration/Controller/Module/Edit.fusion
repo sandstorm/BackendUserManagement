@@ -33,19 +33,30 @@ Sandstorm.BackendUserManagement.UserManagement.ModuleController.edit = Sandstorm
                                                     attributes.id="email" attributes.type="email"
                                                     attributes.required={true} attributes.data-test-id="email"/>
                         </Sandstorm.BackendUserManagement:UserManagement.Component.FormField>
+                        <div class="neos-control-group neos-user-management__inline-checkbox">
+                            <label class="neos-checkbox neos-user-management__checkbox" for="sendEmailVerification">
+                                <Neos.Fusion.Form:Checkbox field.name="sendEmailVerification" field.value="1"
+                                                           attributes.id="sendEmailVerification" attributes.checked={true}
+                                                           attributes.data-test-id="send-email-verification-on-change"/>
+                                <span></span>
+                                <span class="neos-user-management__checkbox-text">
+                                    <Sandstorm.BackendUserManagement:UserManagement.Translate
+                                        id="module.edit.sendEmailVerificationOnChange"/>
+                                </span>
+                            </label>
+                        </div>
                     </div>
-                    <Sandstorm.BackendUserManagement:UserManagement.Component.FormField
-                        labelId="field.active"
-                        for="active"
-                        @if={!isSelf}>
+                    <div class="neos-control-group neos-user-management__active" @if={!isSelf}>
                         <label class="neos-checkbox neos-user-management__checkbox" for="active">
                             <Neos.Fusion.Form:Checkbox field.name="active" field.value="1" attributes.id="active"
-                                                       attributes.checked={user.active} attributes.disabled={isSelf}/>
+                                                       attributes.checked={user.active}/>
                             <span></span>
-                            <Sandstorm.BackendUserManagement:UserManagement.Translate
-                                id={'module.edit.activeHint'}/>
+                            <Sandstorm.BackendUserManagement:UserManagement.Translate id="field.active"/>
                         </label>
-                    </Sandstorm.BackendUserManagement:UserManagement.Component.FormField>
+                        <p class="neos-user-management__hint">
+                            <Sandstorm.BackendUserManagement:UserManagement.Translate id="module.edit.activeHint"/>
+                        </p>
+                    </div>
                     <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary"
                                              attributes.data-test-id="save-user">
                         <Sandstorm.BackendUserManagement:UserManagement.Translate id="save"/>

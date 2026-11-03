@@ -43,6 +43,15 @@ Feature: Initial password and email validation
     When I open the user "jane" in the user management module
     Then the email of the user should be shown as validated
 
+  Scenario: Changing the email without sending a confirmation mail
+    Given A user with username "jane", password "password" and role "Neos.Neos:Editor" exists
+    And user "jane" has the validated email "jane@example.com"
+    When I log in with username "admin" and password "password"
+    And I open the user "jane" in the user management module
+    And I change the email to "jane-new@example.com" without sending a confirmation mail
+    Then the email of the user should be shown as not validated
+    And "jane-new@example.com" should receive no mail
+
   # Also guards against Flow lowercasing the (case-sensitive) token in the generated form URL of the confirm button
   Scenario: A user without email sets their own email and confirms it
     Given A user with username "no-mail-admin", password "password" and role "Neos.Neos:Administrator" exists

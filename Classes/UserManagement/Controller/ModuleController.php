@@ -250,7 +250,10 @@ class ModuleController extends AbstractModuleController
         ]);
     }
 
-    public function updateAction(string $userId, string $firstName, string $lastName, string $email, bool $active = false): void
+    /**
+     * @param bool $sendEmailVerification only relevant if the email changed; checked by default in the form
+     */
+    public function updateAction(string $userId, string $firstName, string $lastName, string $email, bool $active = false, bool $sendEmailVerification = false): void
     {
         $user = $this->requireEditableUser($userId);
         $isSelf = $userId === $this->currentUserId();
@@ -268,7 +271,7 @@ class ModuleController extends AbstractModuleController
         $this->userPersistenceManager->persistAll();
         $this->addTranslatedFlashMessage('flash.userUpdated', [$user->getName()->getFullName()]);
 
-        if ($emailChanged) {
+        if ($emailChanged && $sendEmailVerification) {
             $this->sendMail(fn () => $this->userCommandService->sendEmailVerificationMail($user), 'flash.emailVerificationMailSent');
         }
         $this->redirect('edit', null, null, ['userId' => $userId]);

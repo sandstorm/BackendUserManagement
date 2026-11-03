@@ -138,6 +138,14 @@ When('I open the user {string} in the user management module', async ({ page }, 
 
 When('I change the email to {string}', async ({ page }, email: string) => {
   await page.locator('[data-test-id="email"]').fill(email);
+  await expect(page.locator('[data-test-id="send-email-verification-on-change"]')).toBeChecked();
+  await page.locator('[data-test-id="save-user"]').click();
+  await page.waitForLoadState('networkidle');
+});
+
+When('I change the email to {string} without sending a confirmation mail', async ({ page }, email: string) => {
+  await page.locator('[data-test-id="email"]').fill(email);
+  await page.locator('[data-test-id="send-email-verification-on-change"]').uncheck();
   await page.locator('[data-test-id="save-user"]').click();
   await page.waitForLoadState('networkidle');
 });

@@ -105,7 +105,36 @@
     max-width: 1104px;
 }
 
-.neos-user-management .neos-user-management__row input,
+/* a checkbox as a row cell, aligned with the inputs of its neighbours (label line + input height) */
+.neos-user-management__inline-checkbox {
+    /* grid cells stretch to the row height (the email hint) - centring would then use that height */
+    align-self: start;
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    margin-top: 26px;
+}
+
+.neos-user-management__inline-checkbox .neos-user-management__checkbox {
+    margin-bottom: 0;
+}
+
+/* the Neos checkbox box floats left - a block formatting context keeps wrapped lines beside it, not below */
+.neos-user-management__checkbox-text {
+    display: block;
+    overflow: hidden;
+}
+
+.neos-user-management__active {
+    margin: 8px 0 16px;
+}
+
+.neos-user-management__active .neos-user-management__checkbox {
+    font-size: 14px;
+    margin-bottom: 0;
+}
+
+.neos-user-management .neos-user-management__row input:not([type="checkbox"]),
 .neos-user-management .neos-user-management__row select {
     width: 100%;
     box-sizing: border-box;

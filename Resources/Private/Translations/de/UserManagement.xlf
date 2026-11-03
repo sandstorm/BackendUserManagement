@@ -371,12 +371,16 @@
         <target>Status der E-Mail-Validierung</target>
       </trans-unit>
       <trans-unit id="module.edit.emailChangeHint" xml:space="preserve">
-        <source>Changing the email address resets its validation and sends a confirmation mail.</source>
-        <target>Eine Änderung der E-Mail-Adresse setzt die Validierung zurück und sendet eine Bestätigungs-Mail.</target>
+        <source>Changing the email address resets its validation.</source>
+        <target>Eine Änderung der E-Mail-Adresse setzt die Validierung zurück.</target>
       </trans-unit>
       <trans-unit id="module.edit.emailChangeHintUsernameIsEmail" xml:space="preserve">
-        <source>Changing the email address resets its validation and sends a confirmation mail. Once the new address is confirmed, it becomes the username and the user is logged out.</source>
-        <target>Eine Änderung der E-Mail-Adresse setzt die Validierung zurück und sendet eine Bestätigungs-Mail. Sobald die neue Adresse bestätigt ist, wird sie zum Benutzernamen und der*die Benutzer*in wird abgemeldet.</target>
+        <source>Changing the email address resets its validation. Usernames that equal the old address are changed to the new one once it is confirmed, and the user is logged out. Other usernames stay unchanged.</source>
+        <target>Eine Änderung der E-Mail-Adresse setzt die Validierung zurück. Benutzernamen, die der alten Adresse entsprechen, werden nach Bestätigung der neuen Adresse auf diese geändert und der*die Benutzer*in wird abgemeldet. Andere Benutzernamen bleiben unverändert.</target>
+      </trans-unit>
+      <trans-unit id="module.edit.sendEmailVerificationOnChange" xml:space="preserve">
+        <source>Send a confirmation mail if the email address changes</source>
+        <target>Bestätigungs-Mail senden, wenn sich die E-Mail-Adresse ändert</target>
       </trans-unit>
       <trans-unit id="module.edit.activeHint" xml:space="preserve">
         <source>Inactive users cannot log in.</source>

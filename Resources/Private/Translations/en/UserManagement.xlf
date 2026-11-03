@@ -279,10 +279,13 @@
         <source>Email verification status</source>
       </trans-unit>
       <trans-unit id="module.edit.emailChangeHint" xml:space="preserve">
-        <source>Changing the email address resets its validation and sends a confirmation mail.</source>
+        <source>Changing the email address resets its validation.</source>
       </trans-unit>
       <trans-unit id="module.edit.emailChangeHintUsernameIsEmail" xml:space="preserve">
-        <source>Changing the email address resets its validation and sends a confirmation mail. Once the new address is confirmed, it becomes the username and the user is logged out.</source>
+        <source>Changing the email address resets its validation. Usernames that equal the old address are changed to the new one once it is confirmed, and the user is logged out. Other usernames stay unchanged.</source>
+      </trans-unit>
+      <trans-unit id="module.edit.sendEmailVerificationOnChange" xml:space="preserve">
+        <source>Send a confirmation mail if the email address changes</source>
       </trans-unit>
       <trans-unit id="module.edit.activeHint" xml:space="preserve">
         <source>Inactive users cannot log in.</source>
