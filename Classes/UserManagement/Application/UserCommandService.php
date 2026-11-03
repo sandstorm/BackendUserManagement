@@ -232,8 +232,53 @@ class UserCommandService
         // ElectronicAddress has no repository, it is persisted via cascade from the user
         $this->userService->updateUser($user);
 
-        $this->sendUsernameChangedMail($email, $user, $usernameChanges);
+        $this->sendUsernameChangedMail($email, $user, $usernameChanges, true);
         return $usernameChanges;
+    }
+
+    /**
+     * With `usernameIsEmail`, renames the user's accounts that are not named after the validated primary email -
+     * e.g. accounts created before the setting was enabled. Like the rename in {@see self::markEmailValidated()}:
+     * logged out, workspace migrated on Neos 8, the user gets a mail.
+     *
+     * @return list<UsernameChange> empty if all accounts are already named after the email
+     * @throws UserManagementException
+     */
+    public function useEmailAsUsername(User $user): array
+    {
+        if (!$this->usernameIsEmail) {
+            throw new UserManagementException('error.usernameIsEmailDisabled', 1760000111);
+        }
+        $primaryEmail = $this->simpleUserFinder->getPrimaryEmail($user);
+        if ($primaryEmail === null) {
+            throw new UserManagementException('error.noEmail', 1760000105);
+        }
+        if (!$primaryEmail->isApproved()) {
+            throw new UserManagementException('error.emailNotValidated', 1760000112);
+        }
+        $email = $primaryEmail->getIdentifier();
+        $usernameChanges = [];
+        foreach ($this->simpleUserFinder->getAccountsNotNamedAfterEmail($user) as $account) {
+            $usernameChanges[] = $this->renameAccount($user, $account, $email);
+        }
+        if ($usernameChanges === []) {
+            return [];
+        }
+        // the alias may have changed
+        $this->userService->updateUser($user);
+        $this->sendUsernameChangedMail($email, $user, $usernameChanges, false);
+        return $usernameChanges;
+    }
+
+    /**
+     * Whether $account can be renamed to $newUsername: the name is free (per provider) and, on Neos 8, no other
+     * personal workspace has it.
+     */
+    public function canRenameAccount(Account $account, string $newUsername): bool
+    {
+        $existingAccount = $this->accountRepository->findByAccountIdentifierAndAuthenticationProviderName($newUsername, $account->getAuthenticationProviderName());
+        return ($existingAccount === null || $existingAccount === $account)
+            && $this->neos8PersonalWorkspaceMigrator->canMigrate($account->getAccountIdentifier(), $newUsername);
     }
 
     public function deleteUser(User $user): void
@@ -333,8 +378,7 @@ class UserCommandService
     private function renameAccount(User $user, Account $account, string $newUsername): UsernameChange
     {
         $oldUsername = $account->getAccountIdentifier();
-        $existingAccount = $this->accountRepository->findByAccountIdentifierAndAuthenticationProviderName($newUsername, $account->getAuthenticationProviderName());
-        if (($existingAccount !== null && $existingAccount !== $account) || !$this->neos8PersonalWorkspaceMigrator->canMigrate($oldUsername, $newUsername)) {
+        if (!$this->canRenameAccount($account, $newUsername)) {
             $this->securityLogger->warning(sprintf('Sandstorm/BackendUserManagement: username "%s" not changed to "%s", the name is taken.', $oldUsername, $newUsername));
             return new UsernameChange($oldUsername, $newUsername, false);
         }
@@ -356,8 +400,9 @@ class UserCommandService
 
     /**
      * @param list<UsernameChange> $usernameChanges
+     * @param bool $emailConfirmed the rename follows a confirmed email (vs. an admin aligning it with the email)
      */
-    private function sendUsernameChangedMail(string $recipient, User $user, array $usernameChanges): void
+    private function sendUsernameChangedMail(string $recipient, User $user, array $usernameChanges, bool $emailConfirmed): void
     {
         $changed = array_values(array_filter($usernameChanges, fn (UsernameChange $change) => $change->changed));
         if ($changed === []) {
@@ -365,7 +410,7 @@ class UserCommandService
         }
         // the username already changed - a failing mail must not undo that
         try {
-            $this->userMailer->sendUsernameChanged($recipient, $user, $changed);
+            $this->userMailer->sendUsernameChanged($recipient, $user, $changed, $emailConfirmed);
         } catch (\Throwable $e) {
             $this->securityLogger->error('Sandstorm/BackendUserManagement: could not send username changed mail: ' . $e->getMessage());
         }

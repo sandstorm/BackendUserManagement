@@ -203,6 +203,10 @@ If the name is taken, the rename is skipped (flash message, security log). Accou
 address (e.g. created before the setting was enabled, or users without an email) are never renamed. On Neos 8 the
 personal workspace is migrated with its unpublished changes.
 
+To rename such accounts to the (validated) email explicitly: "Use email address as username" in the module (not for
+yourself), or `./flow usermanagement:useemailasusername [--username <username>] [--dry-run]` for all users at once.
+Same effects as above: logged out, mail with the new username, workspace migrated; taken names are skipped.
+
 ### User management module simplified UI
 
 `Administration > User Management`, replacing the core user module with a simplified UI: search, bulk delete, create, edit (name, email,
@@ -239,6 +243,7 @@ accept `--authentication-provider` (default: first of `authenticationProviders`)
 | `usermanagement:sendreset <username>`                       | mail a "reset your password" link                |
 | `usermanagement:setemail <username> <email> [--validated]`  | set the primary email (e.g. legacy users)        |
 | `usermanagement:duplicateemails`                            | list users sharing a primary email (legacy data) |
+| `usermanagement:useemailasusername [--dry-run]`             | rename accounts to the validated email           |
 | `usermanagement:prunetokens`                                | delete used/expired links (cron)                 |
 
 ---

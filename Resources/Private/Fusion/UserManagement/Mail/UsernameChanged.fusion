@@ -1,22 +1,46 @@
-# Variables: oldUsernames, newUsername, name
+# Variables: oldUsernames (comma separated), newUsername, name, loginUri,
+# emailConfirmed (true: follows a confirmed email, false: an admin aligned the username with the email)
+# Each part is rendered on its own (UserMailer renders .../subject, .../html, .../text), so the @context
+# is set per part and not on the untyped parent path.
 Sandstorm.BackendUserManagement.UserManagement.Mail.usernameChanged {
     subject = Sandstorm.BackendUserManagement:UserManagement.Translate {
         id = 'mail.usernameChanged.subject'
     }
 
     html = Sandstorm.BackendUserManagement:UserManagement.Mail.HtmlLayout {
+        @context.reasonId = ${emailConfirmed ? 'mail.usernameChanged.reasonEmailConfirmed' : 'mail.usernameChanged.reasonAligned'}
         content = afx`
             <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.greeting" arguments={[String.htmlSpecialChars(name)]} /></p>
-            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.usernameChanged.body" arguments={[String.htmlSpecialChars(newUsername), String.htmlSpecialChars(oldUsernames)]} /></p>
+            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id={reasonId} /></p>
+            <p style="margin: 16px 0; padding: 12px 16px; background: #f5f5f5;">
+                <Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.usernameChanged.newUsername" /><br />
+                <strong style="font-size: 17px;">{String.htmlSpecialChars(newUsername)}</strong><br />
+                <span style="font-size: 13px; color: #666;"><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.usernameChanged.previously" arguments={[String.htmlSpecialChars(oldUsernames)]} /></span>
+            </p>
+            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.usernameChanged.passwordUnchanged" /></p>
             <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.usernameChanged.loggedOut" /></p>
+            <Sandstorm.BackendUserManagement:UserManagement.Mail.Button href={loginUri}
+                label={I18n.id('mail.usernameChanged.button').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()} />
+            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.usernameChanged.unexpected" /></p>
         `
     }
 
-    text = ${Array.join([
-        I18n.id('mail.greeting').package('Sandstorm.BackendUserManagement').source('UserManagement').arguments([name]).translate(),
-        '',
-        I18n.id('mail.usernameChanged.body').package('Sandstorm.BackendUserManagement').source('UserManagement').arguments([newUsername, oldUsernames]).translate(),
-        '',
-        I18n.id('mail.usernameChanged.loggedOut').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()
-    ], String.chr(10))}
+    text = Neos.Fusion:Value {
+        @context.reasonId = ${emailConfirmed ? 'mail.usernameChanged.reasonEmailConfirmed' : 'mail.usernameChanged.reasonAligned'}
+        value = ${Array.join([
+            I18n.id('mail.greeting').package('Sandstorm.BackendUserManagement').source('UserManagement').arguments([name]).translate(),
+            '',
+            I18n.id(reasonId).package('Sandstorm.BackendUserManagement').source('UserManagement').translate(),
+            '',
+            I18n.id('mail.usernameChanged.newUsername').package('Sandstorm.BackendUserManagement').source('UserManagement').translate() + ' ' + newUsername,
+            I18n.id('mail.usernameChanged.previously').package('Sandstorm.BackendUserManagement').source('UserManagement').arguments([oldUsernames]).translate(),
+            '',
+            I18n.id('mail.usernameChanged.passwordUnchanged').package('Sandstorm.BackendUserManagement').source('UserManagement').translate(),
+            I18n.id('mail.usernameChanged.loggedOut').package('Sandstorm.BackendUserManagement').source('UserManagement').translate(),
+            '',
+            I18n.id('mail.usernameChanged.button').package('Sandstorm.BackendUserManagement').source('UserManagement').translate() + ': ' + loginUri,
+            '',
+            I18n.id('mail.usernameChanged.unexpected').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()
+        ], String.chr(10))}
+    }
 }

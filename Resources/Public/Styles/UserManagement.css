@@ -64,15 +64,35 @@
 
 .neos-user-management__account {
     margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid #3f3f3f;
 }
 
 .neos-user-management__account h3 {
-    font-size: 14px;
+    margin: 0;
+    font-size: 16px;
 }
 
-/* "Save roles" and "Log in as this user" are separate forms below each other */
-.neos-user-management__account > .neos-user-management__form {
-    margin-bottom: 8px;
+.neos-user-management__account-meta {
+    margin: 2px 0 16px;
+}
+
+/* "Save roles" sits outside its form (form attribute) to share a row with "Log in as this user" */
+.neos-user-management__account .neos-user-management__actions {
+    margin: 16px 0 0;
+}
+
+/* a hint with the action it explains, set apart from the content below */
+.neos-user-management__callout {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-left: 3px solid #00adee;
+    background: rgba(0, 173, 238, .1);
+}
+
+.neos-user-management__callout .neos-user-management__hint {
+    margin: 0 0 12px;
+    font-size: 13px;
 }
 
 .neos-user-management__actions {
@@ -150,7 +170,7 @@
 .neos-user-management__roles {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 8px 24px;
+    gap: 12px 24px;
     margin-bottom: 12px;
 }
 

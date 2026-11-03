@@ -40,3 +40,29 @@ Feature: With usernameIsEmail, the username follows a changed email once it is v
     Then the user list should contain "jane.doe@example.com"
     # only the mail with the new username, no confirmation mail
     And "jane.doe@example.com" should receive 1 mail
+
+  Scenario: An admin changes a legacy username to the email
+    Given A user with username "jane", password "password" and role "Neos.Neos:Editor" exists
+    And user "jane" has the validated email "jane.legacy@example.com"
+    When I log in with username "admin" and password "password"
+    And I open the user "jane" in the user management module
+    And I click "use-email-as-username" in the user details
+    Then the user list should contain "jane.legacy@example.com"
+    And "jane.legacy@example.com" should receive 1 mail
+    When I log out
+    And I log in with username "jane.legacy@example.com" and password "password"
+    Then I should see the Neos content page
+
+  Scenario: Legacy usernames are changed to the validated email via CLI
+    Given A user with username "jane", password "password" and role "Neos.Neos:Editor" exists
+    And user "jane" has the validated email "jane.legacy@example.com"
+    And A user with username "john", password "password" and role "Neos.Neos:Editor" exists
+    And user "john" has the unvalidated email "john@example.com"
+    When the usernames are changed to the email via CLI
+    Then "jane.legacy@example.com" should receive 1 mail
+    # all users: the admin from the background has a validated email, too
+    And "admin@example.com" should receive 1 mail
+    When I log in with username "admin@example.com" and password "password"
+    Then the user list should contain "jane.legacy@example.com"
+    # unvalidated email - skipped
+    And the user list should contain "john"

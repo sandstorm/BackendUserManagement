@@ -116,6 +116,15 @@
       <trans-unit id="error.editingNotAllowed" xml:space="preserve">
         <source>You may not edit this user, because they have roles you do not have.</source>
       </trans-unit>
+      <trans-unit id="error.usernameIsEmailDisabled" xml:space="preserve">
+        <source>Usernames do not follow the email address (usernameIsEmail is disabled).</source>
+      </trans-unit>
+      <trans-unit id="error.emailNotValidated" xml:space="preserve">
+        <source>The email address has not been validated yet.</source>
+      </trans-unit>
+      <trans-unit id="error.useEmailAsUsernameSelf" xml:space="preserve">
+        <source>You cannot change your own username here, it would log you out.</source>
+      </trans-unit>
       <trans-unit id="warning.mailFromMissing" xml:space="preserve">
         <source>No sender address is configured (Sandstorm.BackendUserManagement.userManagement.mail.from.address) - no mails can be sent.</source>
       </trans-unit>
@@ -314,6 +323,12 @@
       <trans-unit id="module.edit.accounts" xml:space="preserve">
         <source>Accounts</source>
       </trans-unit>
+      <trans-unit id="module.edit.useEmailAsUsername" xml:space="preserve">
+        <source>Use email address as username</source>
+      </trans-unit>
+      <trans-unit id="module.edit.useEmailAsUsernameHint" xml:space="preserve">
+        <source>Renames the accounts to {0}. The user is logged out everywhere and gets a mail with the new username.</source>
+      </trans-unit>
       <trans-unit id="module.edit.saveRoles" xml:space="preserve">
         <source>Save roles</source>
       </trans-unit>
@@ -392,8 +407,26 @@
       <trans-unit id="mail.usernameChanged.subject" xml:space="preserve">
         <source>Your username has changed</source>
       </trans-unit>
-      <trans-unit id="mail.usernameChanged.body" xml:space="preserve">
-        <source>your email address has been confirmed. From now on, log in with the username {0} (previously: {1}).</source>
+      <trans-unit id="mail.usernameChanged.reasonEmailConfirmed" xml:space="preserve">
+        <source>your new email address has been confirmed. As you log in with your email address, your username has changed with it.</source>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.reasonAligned" xml:space="preserve">
+        <source>an administrator has changed your username to your email address.</source>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.newUsername" xml:space="preserve">
+        <source>From now on, log in with:</source>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.previously" xml:space="preserve">
+        <source>previously: {0}</source>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.passwordUnchanged" xml:space="preserve">
+        <source>Your password and your second factors (authenticator app, passkeys) stay the same.</source>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.button" xml:space="preserve">
+        <source>Log in</source>
+      </trans-unit>
+      <trans-unit id="mail.usernameChanged.unexpected" xml:space="preserve">
+        <source>If you did not expect this change, please contact your administrator.</source>
       </trans-unit>
       <trans-unit id="mail.usernameChanged.loggedOut" xml:space="preserve">
         <source>For security reasons, you have been logged out everywhere.</source>
