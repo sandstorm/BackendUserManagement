@@ -143,6 +143,13 @@ class ModuleController extends AbstractModuleController
         try {
             $this->userMailer->sendTestMail($primaryEmail->getIdentifier(), $currentUser);
             $this->addTranslatedFlashMessage('flash.testMailSent', [$primaryEmail->getIdentifier()]);
+        } catch (UserManagementException $exception) {
+            // e.g. no base URI configured - the message is a translation id
+            $this->addFlashMessage(
+                $this->translate($exception->getMessage()),
+                $this->translate('flash.testMailFailed'),
+                Message::SEVERITY_ERROR
+            );
         } catch (\Throwable $exception) {
             $this->addFlashMessage(
                 $exception->getMessage(),
@@ -624,6 +631,9 @@ class ModuleController extends AbstractModuleController
     {
         if ($this->mailFromAddress === null || $this->mailFromAddress === '') {
             return $this->translate('warning.mailFromMissing');
+        }
+        if (!$this->userMailer->isBaseUriConfigured()) {
+            return $this->translate('warning.baseUriMissing');
         }
         if ($this->mailerDsn === null || $this->mailerDsn === '' || str_starts_with($this->mailerDsn, 'null://')) {
             return $this->translate('warning.mailerDsnMissing');

@@ -7,7 +7,6 @@ namespace Sandstorm\BackendUserManagement\UserManagement\Application;
 use DateTimeImmutable;
 use Flowpack\JobQueue\Common\Job\JobManager;
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Http\BaseUriProvider;
 use Neos\Flow\I18n\Locale;
 use Neos\Flow\I18n\Service as I18nService;
 use Neos\Fusion\View\FusionView;
@@ -48,8 +47,17 @@ class UserMailer
     #[Flow\Inject]
     protected MailerService $mailerService;
 
-    #[Flow\Inject]
-    protected BaseUriProvider $baseUriProvider;
+    /**
+     * Base URI of the links in mails. Falls back to Neos.Flow.http.baseUri. Never taken from the current request:
+     * its Host / X-Forwarded-Host header is attacker-controlled - a forged one on "forgot password" would send the
+     * victim a valid token pointing to the attacker's domain.
+     * Typed mixed: an unset %env:...% placeholder yields false, not null.
+     */
+    #[Flow\InjectConfiguration(path: 'userManagement.mail.baseUri')]
+    protected mixed $mailBaseUri = null;
+
+    #[Flow\InjectConfiguration(path: 'http.baseUri', package: 'Neos.Flow')]
+    protected mixed $flowBaseUri = null;
 
     #[Flow\Inject]
     protected I18nService $i18nService;
@@ -127,6 +135,8 @@ class UserMailer
     {
         $this->send($recipient, $user, 'testMail', [
             'name' => $user?->getName()->getFullName() ?? '',
+            // a link like in the real mails - so the test mail also fails without a base URI, and its host can be checked
+            'loginUri' => $this->buildUri(self::LOGIN_PATH),
         ]);
     }
 
@@ -192,8 +202,40 @@ class UserMailer
         }
     }
 
+    public function isBaseUriConfigured(): bool
+    {
+        return $this->configuredBaseUri() !== null;
+    }
+
+    /**
+     * Callers check this BEFORE issuing tokens - otherwise a valid token would be stored for a mail that is never sent.
+     *
+     * @throws UserManagementException if no base URI is configured
+     */
+    public function requireBaseUri(): string
+    {
+        $baseUri = $this->configuredBaseUri();
+        if ($baseUri === null) {
+            throw new UserManagementException('error.baseUriMissing', 1793800007);
+        }
+        return $baseUri;
+    }
+
+    /**
+     * @throws UserManagementException if no base URI is configured
+     */
     private function buildUri(string $path): string
     {
-        return rtrim((string) $this->baseUriProvider->getConfiguredBaseUriOrFallbackToCurrentRequest(), '/') . $path;
+        return rtrim($this->requireBaseUri(), '/') . $path;
+    }
+
+    private function configuredBaseUri(): ?string
+    {
+        foreach ([$this->mailBaseUri, $this->flowBaseUri] as $baseUri) {
+            if (is_string($baseUri) && trim($baseUri) !== '') {
+                return trim($baseUri);
+            }
+        }
+        return null;
     }
 }

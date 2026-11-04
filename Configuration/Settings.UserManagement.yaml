@@ -40,9 +40,14 @@ Sandstorm:
         minimumLength: 1
         maximumLength: 255
       mail:
-        # REQUIRED once enabled - sending fails loudly if unset.
-        # Links in mails are built from Neos.Flow.http.baseUri (required for the CLI commands) or the current request.
+        # Base URI of the links in mails, e.g. 'https://cms.example.com/'. Only required if Neos.Flow.http.baseUri is not
+        # set - which is the case in multi-site installations: there Neos.Flow.http.baseUri would also change the
+        # resource and absolute URIs of every site. Without either, no password / confirmation mail is sent. Never taken
+        # from the current request - its Host header is attacker-controlled, so "forgot password" could send a valid
+        # token to the attacker's domain.
+        baseUri: ~
         from:
+          # REQUIRED once enabled - sending fails loudly if unset.
           address: ~
           name: 'Neos'
 

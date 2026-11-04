@@ -38,6 +38,8 @@ All settings with their defaults: [`Settings.UserManagement.yaml`](Configuration
 and [username follows the email](#username-follows-the-email). Mails are sent via
 [neos/symfonymailer](https://github.com/neos/symfonymailer) - configure `Neos.SymfonyMailer.mailer.dsn` and:
 
+To turn it off: `Sandstorm.BackendUserManagement.userManagement.enabled: false`.
+
 ```yaml
 Sandstorm:
   BackendUserManagement:
@@ -45,18 +47,16 @@ Sandstorm:
       # only accounts of these providers are managed
       authenticationProviders: ['Neos.Neos:Backend']
       mail:
+        # required for multisite setups which cant set Neos.Flow.http.baseUri
+        baseUri: 'https://cms.example.com/'
         from:
           address: 'no-reply@example.com'   # required - without it, no mail is sent (error in the security log)
           name: 'My CMS'
-
-Neos:
-  Flow:
-    http:
-      # required for the CLI commands (links in mails)
-      baseUri: 'https://cms.example.com/'
 ```
 
-To turn it off: `Sandstorm.BackendUserManagement.userManagement.enabled: false`.
+> **Links in mails need a base URI:** `userManagement.mail.baseUri` or `Neos.Flow.http.baseUri` has to be set.
+> Without either, no password, confirmation or test mail is sent - the module shows a warning and "forgot password"
+> logs an error in the security log. This is for security reasons.
 
 Add a daily cron job for `./flow usermanagement:prunetokens`.
 
@@ -234,7 +234,7 @@ with the same or a subset of their roles. Nobody can delete, deactivate or lock 
 
 ### CLI
 
-The mail commands require `userManagement.enabled` and `Neos.Flow.http.baseUri`. Commands taking a `<username>` also
+The mail commands require `userManagement.enabled` and `userManagement.mail.baseUri` (or `Neos.Flow.http.baseUri`). Commands taking a `<username>` also
 accept `--authentication-provider` (default: first of `authenticationProviders`).
 
 | Command                                                     |                                                  |

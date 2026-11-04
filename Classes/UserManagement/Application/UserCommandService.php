@@ -317,6 +317,7 @@ class UserCommandService
         if ($accounts === []) {
             throw new UserManagementException('error.noActiveAccount', 1760000106);
         }
+        $this->userMailer->requireBaseUri();
         $links = [];
         foreach ($accounts as $account) {
             $links[] = [
@@ -346,6 +347,7 @@ class UserCommandService
         if ($accounts === []) {
             throw new UserManagementException('error.noActiveAccount', 1760000106);
         }
+        $this->userMailer->requireBaseUri();
         // the token needs an account to hang on to; any account of the user proves the same inbox
         $token = $this->tokenService->issue($accounts[0], UserActionType::VERIFY_EMAIL, $primaryEmail->getIdentifier());
         $this->userMailer->sendEmailVerification(

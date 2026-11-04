@@ -166,6 +166,14 @@
         <source>You cannot change your own username here, it would log you out.</source>
         <target>Sie können Ihren eigenen Benutzernamen hier nicht ändern, Sie würden dabei abgemeldet.</target>
       </trans-unit>
+      <trans-unit id="error.baseUriMissing" xml:space="preserve">
+        <source>No base URI for links in mails is configured (Sandstorm.BackendUserManagement.userManagement.mail.baseUri or Neos.Flow.http.baseUri) - the mail was not sent.</source>
+        <target>Es ist keine Basis-URI für Links in Mails konfiguriert (Sandstorm.BackendUserManagement.userManagement.mail.baseUri oder Neos.Flow.http.baseUri) - die Mail wurde nicht gesendet.</target>
+      </trans-unit>
+      <trans-unit id="warning.baseUriMissing" xml:space="preserve">
+        <source>No base URI for links in mails is configured (Sandstorm.BackendUserManagement.userManagement.mail.baseUri or Neos.Flow.http.baseUri) - no password or confirmation mails can be sent.</source>
+        <target>Es ist keine Basis-URI für Links in Mails konfiguriert (Sandstorm.BackendUserManagement.userManagement.mail.baseUri oder Neos.Flow.http.baseUri) - es können keine Passwort- oder Bestätigungsmails gesendet werden.</target>
+      </trans-unit>
       <trans-unit id="warning.mailFromMissing" xml:space="preserve">
         <source>No sender address is configured (Sandstorm.BackendUserManagement.userManagement.mail.from.address) - no mails can be sent.</source>
         <target>Es ist keine Absendeadresse konfiguriert (Sandstorm.BackendUserManagement.userManagement.mail.from.address) - es können keine Mails gesendet werden.</target>
@@ -537,6 +545,14 @@
       <trans-unit id="mail.testMail.body" xml:space="preserve">
         <source>this is a test mail - the mail configuration works.</source>
         <target>dies ist eine Test-Mail - die Mail-Konfiguration funktioniert.</target>
+      </trans-unit>
+      <trans-unit id="mail.testMail.linkHint" xml:space="preserve">
+        <source>The link below must lead to the Neos login of this installation - links in password and confirmation mails use the same address.</source>
+        <target>Der folgende Link muss zur Neos-Anmeldung dieser Installation führen - Links in Passwort- und Bestätigungsmails verwenden dieselbe Adresse.</target>
+      </trans-unit>
+      <trans-unit id="mail.testMail.button" xml:space="preserve">
+        <source>Log in</source>
+        <target>Anmelden</target>
       </trans-unit>
       <trans-unit id="mail.usernameChanged.subject" xml:space="preserve">
         <source>Your username has changed</source>

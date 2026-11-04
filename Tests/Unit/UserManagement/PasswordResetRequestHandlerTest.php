@@ -37,6 +37,15 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
 
     private bool $throttleAllows = true;
 
+    private bool $baseUriConfigured = true;
+
+    /**
+     * account identifiers a token was issued for
+     *
+     * @var list<string>
+     */
+    private array $issuedTokens = [];
+
     /**
      * throttle bucket keys, in the order they were attempted
      *
@@ -51,6 +60,8 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         $this->sentMails = [];
         $this->throttleAllows = true;
         $this->throttleAttempts = [];
+        $this->baseUriConfigured = true;
+        $this->issuedTokens = [];
 
         $this->addAccount('jane', 'shared@example.com', true);
         $this->addAccount('jane-admin', 'shared@example.com', true);
@@ -74,10 +85,14 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
         $persistenceManager->method('getIdentifierByObject')->willReturnCallback(fn (object $object) => spl_object_hash($object));
 
         $tokenService = $this->createMock(UserActionTokenService::class);
-        $tokenService->method('issue')->willReturnCallback(fn (Account $account) => 'token-' . $account->getAccountIdentifier());
+        $tokenService->method('issue')->willReturnCallback(function (Account $account) {
+            $this->issuedTokens[] = $account->getAccountIdentifier();
+            return 'token-' . $account->getAccountIdentifier();
+        });
         $tokenService->method('getLifetime')->willReturn(new \DateInterval('PT24H'));
 
         $mailer = $this->createMock(UserMailer::class);
+        $mailer->method('isBaseUriConfigured')->willReturnCallback(fn () => $this->baseUriConfigured);
         $mailer->method('sendPasswordLinks')->willReturnCallback(
             function (string $recipient, ?User $user, UserActionType $action, array $links, \DateTimeImmutable $expiresAt, bool $async = false) {
                 // via the queue, so the response time does not reveal whether an account exists
@@ -199,6 +214,22 @@ class PasswordResetRequestHandlerTest extends UnitTestCase
 
         self::assertSame(['forgotPassword:identifier:john'], $this->throttleAttempts);
         self::assertCount(1, $this->sentMails);
+    }
+
+    #[Test]
+    public function missingBaseUriIssuesNoTokenAndLogsAnError(): void
+    {
+        $this->baseUriConfigured = false;
+        $securityLogger = $this->createMock(LoggerInterface::class);
+        $securityLogger->expects(self::once())->method('error')->with(self::stringContains('no base URI configured'));
+        $this->inject($this->handler, 'securityLogger', $securityLogger);
+
+        // same answer as always - the client must not learn about the configuration
+        self::assertTrue($this->handler->handle('john', '127.0.0.1'));
+
+        // a token without a mail would be valid, but reach nobody
+        self::assertSame([], $this->issuedTokens);
+        self::assertSame([], $this->sentMails);
     }
 
     private function addAccount(string $identifier, string $email, bool $approved): void
