@@ -361,6 +361,11 @@ class WebAuthnService
         if ($account->getAuthenticationProviderName() !== 'Neos.Neos:Backend') {
             throw new \RuntimeException('Passkey does not belong to a Neos backend account', 1751200003);
         }
+        // Guard: a deactivated (expired) account must not log in - the password provider checks this via
+        // AccountRepository::findActiveByAccountIdentifierAndAuthenticationProviderName(), we have to do it ourselves.
+        if (!$account->isActive()) {
+            throw new \RuntimeException('Passkey belongs to an inactive account', 1793795361);
+        }
 
         return $account;
     }

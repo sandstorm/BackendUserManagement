@@ -58,9 +58,10 @@ Neos:
                 patternOptions:
                   controllerObjectNamePattern: 'Sandstorm\BackendUserManagement\SecondFactor\Controller\(LoginController|ModuleController)'
           # Parallel provider for usernameless passwordless passkey login. It has NO request
-          # pattern, so its token is always active and can be authenticated in-request by the
-          # PasswordlessLoginController; and NO entry point, so the existing Neos.Neos:Backend
-          # WebRedirect still serves the login screen. With Neos' `oneToken` strategy, an
+          # pattern, so its token is always active and is authenticated by Flow's
+          # AuthenticationProviderManager as soon as a POST carries the namespaced assertion
+          # (WebAuthnPasswordlessToken::ASSERTION_FIELD); and NO entry point, so the existing
+          # Neos.Neos:Backend WebRedirect still serves the login screen. With Neos' `oneToken` strategy, an
           # authenticated token here logs the (Neos.Neos:Backend) account into the backend.
           'Sandstorm.BackendUserManagement:PasswordlessWebAuthn':
             provider: 'Sandstorm\BackendUserManagement\SecondFactor\Security\Authentication\WebAuthnPasswordlessProvider'
