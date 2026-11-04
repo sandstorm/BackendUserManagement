@@ -7,7 +7,9 @@ use Neos\Flow\Core\Bootstrap;
 use Neos\Flow\Http\HttpRequestHandlerInterface;
 use Neos\Flow\Http\ServerRequestAttributes;
 use Neos\Flow\Mvc\ActionRequest;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\Security\Account;
+use Neos\Flow\Security\AccountRepository;
 use Neos\Flow\Security\Authentication\AuthenticationProviderInterface;
 use Neos\Flow\Security\Authentication\TokenInterface;
 use Neos\Flow\Tests\UnitTestCase;
@@ -17,6 +19,7 @@ use Psr\Log\LoggerInterface;
 use Sandstorm\BackendUserManagement\SecondFactor\Domain\AuthenticationStatus;
 use Sandstorm\BackendUserManagement\SecondFactor\Security\Authentication\WebAuthnPasswordlessProvider;
 use Sandstorm\BackendUserManagement\SecondFactor\Security\Token\WebAuthnPasswordlessToken;
+use Sandstorm\BackendUserManagement\SecondFactor\Service\PasswordlessAssertionRejectedException;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\SecondFactorSessionStorageService;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\WebAuthnService;
 use Webauthn\PublicKeyCredentialRequestOptions;
@@ -30,6 +33,8 @@ class WebAuthnPasswordlessProviderTest extends UnitTestCase
     private SecondFactorSessionStorageService&MockObject $sessionStorage;
 
     private LoggerInterface&MockObject $securityLogger;
+
+    private AccountRepository&MockObject $accountRepository;
 
     private ServerRequest $httpRequest;
 
@@ -55,6 +60,9 @@ class WebAuthnPasswordlessProviderTest extends UnitTestCase
         $this->inject($this->provider, 'secondFactorSessionStorageService', $this->sessionStorage);
         $this->inject($this->provider, 'bootstrap', $bootstrap);
         $this->inject($this->provider, 'securityLogger', $this->securityLogger);
+        $this->accountRepository = $this->createMock(AccountRepository::class);
+        $this->inject($this->provider, 'accountRepository', $this->accountRepository);
+        $this->inject($this->provider, 'persistenceManager', $this->createMock(PersistenceManagerInterface::class));
         $this->inject($this->provider, 'passwordlessLoginEnabled', true);
     }
 
@@ -62,6 +70,9 @@ class WebAuthnPasswordlessProviderTest extends UnitTestCase
     public function authenticatesTheAccountOfAValidAssertion(): void
     {
         $account = $this->createMock(Account::class);
+        // resets the failed-attempt counter, like Flow's password provider
+        $account->expects(self::once())->method('authenticationAttempted')->with(TokenInterface::AUTHENTICATION_SUCCESSFUL);
+        $this->accountRepository->expects(self::once())->method('update')->with($account);
         $this->sessionStorage->method('getValue')->willReturn('{"stored":"options"}');
         $this->webAuthnService->expects(self::once())->method('verifyPasswordlessAssertion')
             ->with('the-assertion', self::anything(), $this->httpRequest)
@@ -93,6 +104,40 @@ class WebAuthnPasswordlessProviderTest extends UnitTestCase
 
         self::assertSame(TokenInterface::WRONG_CREDENTIALS, $token->getAuthenticationStatus());
         self::assertNull($token->getAccount());
+    }
+
+    #[Test]
+    public function countsARejectedAssertionOnTheKnownAccount(): void
+    {
+        $account = $this->createMock(Account::class);
+        $account->method('getAccountIdentifier')->willReturn('editor');
+        $account->expects(self::once())->method('authenticationAttempted')->with(TokenInterface::WRONG_CREDENTIALS);
+        $this->accountRepository->expects(self::once())->method('update')->with($account);
+        $this->sessionStorage->method('getValue')->willReturn('{"stored":"options"}');
+        $this->webAuthnService->method('verifyPasswordlessAssertion')
+            ->willThrowException(new PasswordlessAssertionRejectedException($account, new \RuntimeException('bad signature')));
+        $this->securityLogger->expects(self::once())->method('warning')->with(
+            self::stringContains('bad signature'),
+            ['clientIp' => '203.0.113.7', 'accountIdentifier' => 'editor']
+        );
+
+        $token = $this->tokenWithAssertion('the-assertion');
+        $this->provider->authenticate($token);
+
+        self::assertSame(TokenInterface::WRONG_CREDENTIALS, $token->getAuthenticationStatus());
+        self::assertNull($token->getAccount());
+    }
+
+    #[Test]
+    public function countsNothingWithoutAKnownAccount(): void
+    {
+        // unknown credential, inactive or non-backend account: nothing to count on (Flow counts only active accounts)
+        $this->sessionStorage->method('getValue')->willReturn('{"stored":"options"}');
+        $this->webAuthnService->method('verifyPasswordlessAssertion')
+            ->willThrowException(new \RuntimeException('Unknown passkey credential', 1751200001));
+        $this->accountRepository->expects(self::never())->method('update');
+
+        $this->provider->authenticate($this->tokenWithAssertion('the-assertion'));
     }
 
     #[Test]

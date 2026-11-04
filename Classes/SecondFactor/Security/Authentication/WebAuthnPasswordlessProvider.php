@@ -6,6 +6,9 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Core\Bootstrap;
 use Neos\Flow\Http\HttpRequestHandlerInterface;
 use Neos\Flow\Http\ServerRequestAttributes;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
+use Neos\Flow\Security\Account;
+use Neos\Flow\Security\AccountRepository;
 use Neos\Flow\Security\Authentication\Provider\AbstractProvider;
 use Neos\Flow\Security\Authentication\TokenInterface;
 use Neos\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
@@ -13,6 +16,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Sandstorm\BackendUserManagement\SecondFactor\Domain\AuthenticationStatus;
 use Sandstorm\BackendUserManagement\SecondFactor\Security\Token\WebAuthnPasswordlessToken;
+use Sandstorm\BackendUserManagement\SecondFactor\Service\PasswordlessAssertionRejectedException;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\SecondFactorSessionStorageService;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\WebAuthnService;
 
@@ -49,6 +53,18 @@ class WebAuthnPasswordlessProvider extends AbstractProvider
      * @var Bootstrap
      */
     protected $bootstrap;
+
+    /**
+     * @Flow\Inject
+     * @var AccountRepository
+     */
+    protected $accountRepository;
+
+    /**
+     * @Flow\Inject
+     * @var PersistenceManagerInterface
+     */
+    protected $persistenceManager;
 
     /**
      * @Flow\Inject(name="Neos.Flow:SecurityLogger")
@@ -111,14 +127,22 @@ class WebAuthnPasswordlessProvider extends AbstractProvider
                 $httpRequest
             );
         } catch (\Throwable $exception) {
+            // Only a known credential of an active backend account yields an account here - like Flow's
+            // password provider, which counts failures only for accounts it found via findActiveBy...().
+            $knownAccount = $exception instanceof PasswordlessAssertionRejectedException ? $exception->account : null;
+            if ($knownAccount !== null) {
+                $this->recordAuthenticationAttempt($knownAccount, TokenInterface::WRONG_CREDENTIALS);
+            }
             $this->rejectLogin(
                 $authenticationToken,
                 sprintf('%s (%s)', $exception->getMessage(), $exception->getCode()),
-                $httpRequest
+                $httpRequest,
+                $knownAccount
             );
             return;
         }
 
+        $this->recordAuthenticationAttempt($account, TokenInterface::AUTHENTICATION_SUCCESSFUL);
         $authenticationToken->setAccount($account);
         $authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
 
@@ -127,14 +151,27 @@ class WebAuthnPasswordlessProvider extends AbstractProvider
         $this->secondFactorSessionStorageService->setAuthenticationStatus(AuthenticationStatus::AUTHENTICATED);
     }
 
-    private function rejectLogin(WebAuthnPasswordlessToken $token, string $reason, ?ServerRequestInterface $httpRequest): void
+    /**
+     * Same as PersistedUsernamePasswordProvider: a failure increases Account::$failedAuthenticationCount,
+     * a success resets it and sets lastSuccessfulAuthenticationDate.
+     */
+    private function recordAuthenticationAttempt(Account $account, int $authenticationStatus): void
+    {
+        $account->authenticationAttempted($authenticationStatus);
+        $this->accountRepository->update($account);
+        // persisted even if the request turns out to be a "safe" one
+        $this->persistenceManager->allowObject($account);
+    }
+
+    private function rejectLogin(WebAuthnPasswordlessToken $token, string $reason, ?ServerRequestInterface $httpRequest, ?Account $account = null): void
     {
         $token->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
         $clientIp = $httpRequest?->getAttribute(ServerRequestAttributes::CLIENT_IP);
-        $this->securityLogger->warning(
-            self::LOGGING_PREFIX . 'Passwordless passkey login failed: ' . $reason,
-            ['clientIp' => is_string($clientIp) ? $clientIp : 'unknown']
-        );
+        $context = ['clientIp' => is_string($clientIp) ? $clientIp : 'unknown'];
+        if ($account !== null) {
+            $context['accountIdentifier'] = $account->getAccountIdentifier();
+        }
+        $this->securityLogger->warning(self::LOGGING_PREFIX . 'Passwordless passkey login failed: ' . $reason, $context);
     }
 
     private function currentHttpRequest(): ?ServerRequestInterface
