@@ -34,6 +34,10 @@
         <source>The provided OTP is invalid.</source>
         <target>Das eingegebene OTP ist ungültig.</target>
       </trans-unit>
+      <trans-unit id="login.flashMessage.tooManyAttempts" xml:space="preserve">
+        <source>Too many attempts. Please wait a few minutes, then try again.</source>
+        <target>Zu viele Versuche. Bitte warten Sie einige Minuten und versuchen Sie es dann erneut.</target>
+      </trans-unit>
       <trans-unit id="login.flashMessage.submittedOtpIncorrect" xml:space="preserve">
         <source>Submitted OTP was incorrect.</source>
         <target>Das eingegebene OTP ist nicht korrekt.</target>

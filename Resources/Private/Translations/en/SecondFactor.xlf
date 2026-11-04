@@ -26,6 +26,9 @@
       <trans-unit id="login.flashMessage.invalidOtp" xml:space="preserve">
         <source>The provided OTP is invalid.</source>
       </trans-unit>
+      <trans-unit id="login.flashMessage.tooManyAttempts" xml:space="preserve">
+        <source>Too many attempts. Please wait a few minutes, then try again.</source>
+      </trans-unit>
       <trans-unit id="login.flashMessage.submittedOtpIncorrect" xml:space="preserve">
         <source>Submitted OTP was incorrect.</source>
       </trans-unit>

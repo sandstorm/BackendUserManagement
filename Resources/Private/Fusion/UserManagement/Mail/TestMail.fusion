@@ -1,4 +1,4 @@
-# Variables: name
+# Variables: name, loginUri
 Sandstorm.BackendUserManagement.UserManagement.Mail.testMail {
     subject = Sandstorm.BackendUserManagement:UserManagement.Translate {
         id = 'mail.testMail.subject'
@@ -8,8 +8,18 @@ Sandstorm.BackendUserManagement.UserManagement.Mail.testMail {
         content = afx`
             <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.greeting" arguments={[String.htmlSpecialChars(name)]} /></p>
             <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.testMail.body" /></p>
+            <p><Sandstorm.BackendUserManagement:UserManagement.Translate id="mail.testMail.linkHint" /></p>
+            <Sandstorm.BackendUserManagement:UserManagement.Mail.Button href={loginUri}
+                label={I18n.id('mail.testMail.button').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()} />
         `
     }
 
-    text = ${I18n.id('mail.greeting').package('Sandstorm.BackendUserManagement').source('UserManagement').arguments([name]).translate() + String.chr(10) + String.chr(10) + I18n.id('mail.testMail.body').package('Sandstorm.BackendUserManagement').source('UserManagement').translate()}
+    text = ${Array.join([
+        I18n.id('mail.greeting').package('Sandstorm.BackendUserManagement').source('UserManagement').arguments([name]).translate(),
+        '',
+        I18n.id('mail.testMail.body').package('Sandstorm.BackendUserManagement').source('UserManagement').translate(),
+        I18n.id('mail.testMail.linkHint').package('Sandstorm.BackendUserManagement').source('UserManagement').translate(),
+        '',
+        I18n.id('mail.testMail.button').package('Sandstorm.BackendUserManagement').source('UserManagement').translate() + ': ' + loginUri
+    ], String.chr(10))}
 }

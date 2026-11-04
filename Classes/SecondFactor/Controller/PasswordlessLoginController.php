@@ -9,9 +9,9 @@ namespace Sandstorm\BackendUserManagement\SecondFactor\Controller;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\View\JsonView;
-use Neos\Flow\Security\Authentication\TokenInterface;
+use Neos\Flow\Security\Authentication\AuthenticationManagerInterface;
 use Neos\Flow\Security\Context as SecurityContext;
-use Sandstorm\BackendUserManagement\SecondFactor\Domain\AuthenticationStatus;
+use Neos\Flow\Security\Exception\AuthenticationRequiredException;
 use Sandstorm\BackendUserManagement\SecondFactor\Security\Token\WebAuthnPasswordlessToken;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\SecondFactorSessionStorageService;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\WebAuthnService;
@@ -22,7 +22,9 @@ use Sandstorm\BackendUserManagement\SecondFactor\Service\WebAuthnService;
  * Both actions are reachable while logged out (this controller is intentionally NOT behind
  * the Neos.Neos:Backend request pattern). They are hard-gated by the
  * `secondFactor.webAuthn.passwordlessLoginEnabled` setting (off by default) so that, while disabled, no
- * one can authenticate through this path even if the UI button were somehow present.
+ * one can authenticate through this path even if the UI button were somehow present. The
+ * {@see \Sandstorm\BackendUserManagement\SecondFactor\Security\Authentication\WebAuthnPasswordlessProvider}
+ * checks the setting again, as its token is active on every request.
  */
 class PasswordlessLoginController extends ActionController
 {
@@ -35,6 +37,12 @@ class PasswordlessLoginController extends ActionController
      * @var SecurityContext
      */
     protected $securityContext;
+
+    /**
+     * @Flow\Inject
+     * @var AuthenticationManagerInterface
+     */
+    protected $authenticationManager;
 
     /**
      * @Flow\Inject
@@ -80,54 +88,31 @@ class PasswordlessLoginController extends ActionController
     }
 
     /**
-     * Ceremony step 2: verify the assertion, resolve the account, authenticate the parallel
-     * WebAuthn token (which logs the user into the Neos backend without a password), and
-     * return the URI for the client to redirect to.
+     * Ceremony step 2: the assertion arrives as the internal argument
+     * {@see WebAuthnPasswordlessToken::ASSERTION_FIELD}, which puts the token into AUTHENTICATION_NEEDED.
+     * Flow's AuthenticationManager then runs the WebAuthnPasswordlessProvider (verification, session id
+     * renewal, session tagging). Here we only report the outcome and the URI to redirect to.
      *
      * @Flow\SkipCsrfProtection
      */
-    public function verifyAction(string $assertion): string
+    public function verifyAction(): string
     {
         if (!$this->passwordlessLoginEnabled) {
             return $this->jsonError('Passwordless login is disabled', 403);
         }
 
-        $serialized = $this->secondFactorSessionStorageService->getValue(
-            SecondFactorSessionStorageService::SESSION_OBJECT_WEBAUTHN_PASSWORDLESS_OPTIONS
-        );
-        if (!is_string($serialized)) {
-            return $this->jsonError('No passwordless login in progress', 400);
-        }
-        $options = $this->webAuthnService->requestOptionsFromJson($serialized);
-
         try {
-            $account = $this->webAuthnService->verifyPasswordlessAssertion(
-                $assertion,
-                $options,
-                $this->request->getHttpRequest()
-            );
-        } catch (\Throwable $e) {
-            return $this->jsonError($e->getMessage(), 400);
+            // usually already done by the PolicyEnforcement interceptor - a no-op then
+            $this->authenticationManager->authenticate();
+        } catch (AuthenticationRequiredException) {
+            // evaluated via the token below
         }
 
         $token = $this->securityContext->getAuthenticationTokensOfType(WebAuthnPasswordlessToken::class)[0] ?? null;
-        if ($token === null) {
-            return $this->jsonError('Passwordless authentication token not available', 500);
+        if ($token === null || !$token->isAuthenticated()) {
+            // the reason is in the security log - don't hand webauthn-lib details to the client
+            return $this->jsonError('Passkey login failed', 401);
         }
-
-        // Authenticate the parallel token with the resolved backend account and persist it to
-        // the session so the authentication survives the redirect to the backend.
-        $token->setAccount($account);
-        $token->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
-        $this->securityContext->refreshTokens();
-
-        // A user-verified passkey is itself multi-factor, so it also satisfies the 2FA gate.
-        $this->secondFactorSessionStorageService->initializeTwoFactorSessionObject();
-        $this->secondFactorSessionStorageService->setAuthenticationStatus(AuthenticationStatus::AUTHENTICATED);
-
-        $this->secondFactorSessionStorageService->removeValue(
-            SecondFactorSessionStorageService::SESSION_OBJECT_WEBAUTHN_PASSWORDLESS_OPTIONS
-        );
 
         $this->response->setContentType('application/json');
         return json_encode([

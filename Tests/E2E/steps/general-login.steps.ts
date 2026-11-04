@@ -58,7 +58,8 @@ Then('the passwordless verify endpoint is forbidden', async ({ page }) => {
   // The endpoint must reject everyone while passwordless login is disabled — server-side,
   // not just by hiding the button.
   const response = await page.request.post('/neos/passwordless-webauthn/verify', {
-    data: { assertion: '{}' },
+    // same body shape as webauthn.js, so the WebAuthnPasswordlessToken picks it up
+    data: { __authentication: { Sandstorm: { BackendUserManagement: { Passwordless: { assertion: '{}' } } } } },
     failOnStatusCode: false,
   });
   expect(response.status()).toBe(403);

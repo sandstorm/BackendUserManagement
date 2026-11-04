@@ -30,6 +30,19 @@ Feature: Login flow with default settings
     And I enter a valid TOTP for device "Admin Test Device"
     Then I should see the Neos content page
 
+  # The limit (5) is pinned in the E2E-SUT Settings.yaml (secondFactor.throttle.perAccount) - keep both in sync.
+  Scenario: TOTP login is throttled after too many attempts - even a valid code is rejected then
+    When I log in with username "admin" and password "password"
+    And I navigate to the 2FA management page
+    And I add a new TOTP 2FA device with name "Admin Test Device"
+    And I log out
+    And I log in with username "admin" and password "password"
+    And I enter a wrong TOTP 5 times for device "Admin Test Device"
+    Then I should see the 2FA error "The provided OTP is invalid."
+    When I enter a valid TOTP for device "Admin Test Device" once
+    Then I should see the 2FA verification page
+    And I should see the 2FA error "Too many attempts. Please wait a few minutes, then try again."
+
   Scenario: User has to pass 2FA when a WebAuthn device is registered on his account
     Given I have a virtual security key
     When I log in with username "admin" and password "password"

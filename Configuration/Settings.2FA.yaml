@@ -13,6 +13,15 @@ Sandstorm:
       # (now - leeway) through (now + leeway). 0 disables leeway (exact match only).
       # MUST be lower than the 30s TOTP period; values >= 30 are clamped to 29.
       totpLeewayInSeconds: 0
+      # Throttle for checking a TOTP code during login (symfony/rate-limiter, sliding window), per account - so it also
+      # holds across new sessions / login attempts. Without it, someone who knows the password can brute-force the
+      # 6-digit code. Every check counts, also successful ones. The limiter state is kept in the Flow cache
+      # Sandstorm_BackendUserManagement_Throttle, locks use userManagement.throttle.lockStore.
+      # Side effect: whoever knows the password can block the TOTP login of that account for the window.
+      throttle:
+        perAccount:
+          limit: 5
+          window: 'PT5M'
 
       webAuthn:
         # Human-readable relying party name shown in the browser's WebAuthn prompt.

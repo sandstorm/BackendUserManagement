@@ -10,6 +10,7 @@ use Neos\Error\Messages\Message;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Configuration\ConfigurationManager;
 use Neos\Flow\Configuration\Exception\InvalidConfigurationTypeException;
+use Neos\Flow\Http\ServerRequestAttributes;
 use Neos\Flow\I18n\Translator;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\Exception\StopActionException;
@@ -24,6 +25,8 @@ use Neos\Neos\Domain\Repository\SiteRepository;
 use Sandstorm\BackendUserManagement\SecondFactor\Domain\AuthenticationStatus;
 use Sandstorm\BackendUserManagement\SecondFactor\Domain\Model\SecondFactor;
 use Sandstorm\BackendUserManagement\SecondFactor\Domain\Repository\SecondFactorRepository;
+use Psr\Log\LoggerInterface;
+use Sandstorm\BackendUserManagement\SecondFactor\Service\SecondFactorService;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\SecondFactorSessionStorageService;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\TOTPService;
 use Sandstorm\BackendUserManagement\SecondFactor\Service\WebAuthnService;
@@ -97,6 +100,18 @@ class LoginController extends ActionController
     protected $translator;
 
     /**
+     * @Flow\Inject
+     * @var SecondFactorService
+     */
+    protected $secondFactorService;
+
+    /**
+     * @Flow\Inject(name="Neos.Flow:SecurityLogger")
+     * @var LoggerInterface
+     */
+    protected $securityLogger;
+
+    /**
      * @Flow\InjectConfiguration(path="secondFactor.loginForm.stylesheets")
      * @var array
      */
@@ -140,11 +155,38 @@ class LoginController extends ActionController
     {
         $account = $this->securityContext->getAccount();
 
+        // Throttled before the code is checked: once over the limit, even the right code is rejected - otherwise
+        // the throttle would still tell a brute-forcer which code was right.
+        if (!$this->secondFactorService->attemptSecondFactorCheck($account)) {
+            $this->logSecondFactorFailure('TOTP check throttled - too many attempts', $account);
+            $this->addFlashMessage(
+                $this->translator->translateById(
+                    'login.flashMessage.tooManyAttempts',
+                    [],
+                    null,
+                    null,
+                    'SecondFactor',
+                    'Sandstorm.BackendUserManagement'
+                ),
+                $this->translator->translateById(
+                    'login.flashMessage.errorHeader',
+                    [],
+                    null,
+                    null,
+                    'SecondFactor',
+                    'Sandstorm.BackendUserManagement'
+                ),
+                Message::SEVERITY_ERROR
+            );
+            $this->redirectToInterceptedRequestOrBackend();
+        }
+
         $isValidOtp = $this->enteredTotpMatchesAnyTotpFactor($otp, $account);
 
         if ($isValidOtp) {
             $this->secondFactorSessionStorageService->setAuthenticationStatus(AuthenticationStatus::AUTHENTICATED);
         } else {
+            $this->logSecondFactorFailure('invalid TOTP code', $account);
             $this->addFlashMessage(
                 $this->translator->translateById(
                     'login.flashMessage.invalidOtp',
@@ -443,6 +485,18 @@ class LoginController extends ActionController
     // Helpers
     // ------------------------------------------------------------------
 
+    private function logSecondFactorFailure(string $reason, Account $account): void
+    {
+        $clientIp = $this->request->getHttpRequest()->getAttribute(ServerRequestAttributes::CLIENT_IP);
+        $this->securityLogger->warning(
+            'Sandstorm/BackendUserManagement: Second factor login failed: ' . $reason,
+            [
+                'clientIp' => is_string($clientIp) ? $clientIp : 'unknown',
+                'accountIdentifier' => $account->getAccountIdentifier(),
+            ]
+        );
+    }
+
     private function jsonError(string $message, int $code): string
     {
         $this->response->setStatusCode($code);
@@ -467,7 +521,7 @@ class LoginController extends ActionController
     /**
      * @throws StopActionException
      */
-    private function redirectToInterceptedRequestOrBackend(): void
+    private function redirectToInterceptedRequestOrBackend(): never
     {
         $originalRequest = $this->securityContext->getInterceptedRequest();
         if ($originalRequest !== null) {

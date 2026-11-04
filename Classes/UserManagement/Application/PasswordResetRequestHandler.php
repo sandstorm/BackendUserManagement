@@ -78,6 +78,15 @@ class PasswordResetRequestHandler
             return false;
         }
 
+        // before resolving accounts - no token may be issued for a mail that can't be sent. Same answer as always.
+        if (!$this->userMailer->isBaseUriConfigured()) {
+            $this->securityLogger->error(
+                'Sandstorm/BackendUserManagement: forgot password requested, but no mail sent - no base URI configured '
+                . '(userManagement.mail.baseUri or Neos.Flow.http.baseUri).'
+            );
+            return true;
+        }
+
         foreach ($this->resolveAccountsByRecipient($input) as $recipient => $accounts) {
             $this->sendMail($recipient, $accounts);
         }

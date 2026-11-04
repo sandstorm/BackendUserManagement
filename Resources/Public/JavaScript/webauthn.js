@@ -149,7 +149,19 @@
         }
     }
 
-    async function runAuthentication(container) {
+    // Body of the 2nd-factor verify request: a plain action argument.
+    function secondFactorAssertionBody(assertionJson) {
+        return { assertion: assertionJson };
+    }
+
+    // Body of the passwordless verify request: a namespaced internal argument, picked up by
+    // WebAuthnPasswordlessToken::updateCredentials() (see its ASSERTION_FIELD) - Flow's
+    // AuthenticationProviderManager then authenticates it like a username/password login.
+    function passwordlessAssertionBody(assertionJson) {
+        return { __authentication: { Sandstorm: { BackendUserManagement: { Passwordless: { assertion: assertionJson } } } } };
+    }
+
+    async function runAuthentication(container, buildBody) {
         clearError(container);
         var trigger = container.querySelector('[data-webauthn-trigger]');
         if (trigger) trigger.disabled = true;
@@ -160,7 +172,7 @@
             });
             if (!credential) throw new Error('No credential returned by browser');
             var encoded = encodeAssertion(credential);
-            var result = await postJson(container.dataset.verifyUrl, { assertion: JSON.stringify(encoded) });
+            var result = await postJson(container.dataset.verifyUrl, (buildBody || secondFactorAssertionBody)(JSON.stringify(encoded)));
             window.location.href = (result && result.redirect) ? result.redirect : '/neos';
         } catch (e) {
             showError(container, describeError(container, e));
@@ -201,7 +213,7 @@
         document.querySelectorAll('[data-webauthn-passwordless]').forEach(function (container) {
             if (!checkSupport(container)) return;
             var trigger = container.querySelector('[data-webauthn-trigger]');
-            if (trigger) trigger.addEventListener('click', function () { runAuthentication(container); });
+            if (trigger) trigger.addEventListener('click', function () { runAuthentication(container, passwordlessAssertionBody); });
         });
     }
 

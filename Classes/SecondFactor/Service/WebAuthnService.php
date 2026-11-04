@@ -301,12 +301,16 @@ class WebAuthnService
      * Verify a usernameless assertion and resolve the Neos backend account it belongs to.
      *
      * The assertion carries both the credential id and a user handle. We look the credential
-     * up by its id first (proving we actually stored it), then let the library verify the
-     * assertion against that credential's stored user handle, and finally map the user handle
-     * (the account's persistence identifier) back to the Flow account. Only Neos backend
-     * accounts may use this login path.
+     * up by its id first (proving we actually stored it), map its stored user handle (the
+     * account's persistence identifier) back to the Flow account, and only then let the library
+     * verify the assertion against that credential. Only active Neos backend accounts may use
+     * this login path.
      *
-     * @throws \Throwable when validation fails or no matching backend account exists
+     * The account is resolved before the signature check, so a rejected assertion can be
+     * counted on it ({@see PasswordlessAssertionRejectedException}).
+     *
+     * @throws PasswordlessAssertionRejectedException when the assertion of a known credential does not verify
+     * @throws \Throwable when the credential is unknown or no matching active backend account exists
      */
     public function verifyPasswordlessAssertion(
         string $assertionResponseJson,
@@ -327,21 +331,27 @@ class WebAuthnService
         }
 
         $userHandle = $credentialSource->userHandle;
+        $account = $this->resolveBackendAccountByUserHandle($userHandle);
+
         $validator = AuthenticatorAssertionResponseValidator::create(
             $this->buildCeremonyStepManagerFactory()->requestCeremony()
         );
-        $updatedCredential = $validator->check(
-            $credentialSource,
-            $authenticatorResponse,
-            $options,
-            $request->getUri()->getHost(),
-            $userHandle
-        );
+        try {
+            $updatedCredential = $validator->check(
+                $credentialSource,
+                $authenticatorResponse,
+                $options,
+                $request->getUri()->getHost(),
+                $userHandle
+            );
+        } catch (\Throwable $exception) {
+            throw new PasswordlessAssertionRejectedException($account, $exception);
+        }
 
         // Persist the bumped counter so replay protection stays effective across logins.
         $this->credentialSourceRepository->saveCredential($updatedCredential);
 
-        return $this->resolveBackendAccountByUserHandle($userHandle);
+        return $account;
     }
 
     /**
@@ -360,6 +370,11 @@ class WebAuthnService
         // Guard: only Neos backend accounts may authenticate passwordlessly through this path.
         if ($account->getAuthenticationProviderName() !== 'Neos.Neos:Backend') {
             throw new \RuntimeException('Passkey does not belong to a Neos backend account', 1751200003);
+        }
+        // Guard: a deactivated (expired) account must not log in - the password provider checks this via
+        // AccountRepository::findActiveByAccountIdentifierAndAuthenticationProviderName(), we have to do it ourselves.
+        if (!$account->isActive()) {
+            throw new \RuntimeException('Passkey belongs to an inactive account', 1793795361);
         }
 
         return $account;

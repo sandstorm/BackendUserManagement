@@ -18,7 +18,7 @@ use Sandstorm\BackendUserManagement\UserManagement\Domain\UserActionType;
 /**
  * User management: send password mails, prune tokens, report duplicate emails, align usernames with emails.
  *
- * Links in mails are built from Neos.Flow.http.baseUri - it must be configured for these commands.
+ * Links in mails are built from userManagement.mail.baseUri (fallback: Neos.Flow.http.baseUri) - it must be configured.
  */
 class UserManagementCommandController extends CommandController
 {

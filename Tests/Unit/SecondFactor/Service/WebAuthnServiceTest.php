@@ -39,12 +39,26 @@ class WebAuthnServiceTest extends UnitTestCase
     {
         $account = $this->createMock(Account::class);
         $account->method('getAuthenticationProviderName')->willReturn('Neos.Neos:Backend');
+        $account->method('isActive')->willReturn(true);
         $this->persistenceManager
             ->method('getObjectByIdentifier')
             ->with('the-user-handle', Account::class)
             ->willReturn($account);
 
         self::assertSame($account, $this->service->resolveBackendAccountByUserHandle('the-user-handle'));
+    }
+
+    #[Test]
+    public function throwsWhenAccountIsInactive(): void
+    {
+        $account = $this->createMock(Account::class);
+        $account->method('getAuthenticationProviderName')->willReturn('Neos.Neos:Backend');
+        $account->method('isActive')->willReturn(false);
+        $this->persistenceManager->method('getObjectByIdentifier')->willReturn($account);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(1793795361);
+        $this->service->resolveBackendAccountByUserHandle('the-user-handle');
     }
 
     #[Test]

@@ -28,3 +28,9 @@ Sandstorm:
         # hostname is explicitly trusted here. Production keeps this empty (HTTPS only);
         # for the E2E tests we trust localhost so the ceremony can run over http.
         securedRelyingPartyIds: ['localhost']
+      # Pinned for features/default/login.feature "TOTP login is throttled ...", which enters exactly this many wrong
+      # codes - so the test does not depend on the package default. Keep both in sync.
+      throttle:
+        perAccount:
+          limit: 5
+          window: 'PT5M'
