@@ -5,6 +5,7 @@ import { NeosLoginPage } from "../helpers/general-pages.ts";
 import { createUser, logout } from '../helpers/system.ts';
 import { enableVirtualAuthenticator, enableTouchOnlyAuthenticator, armWebAuthnCancellation } from '../helpers/webauthn.ts';
 import { state } from "../helpers/state.ts";
+import { generateOtp, generateWrongOtp } from "../helpers/totp.ts";
 
 const { Given, When, Then } = createBdd();
 
@@ -93,6 +94,31 @@ When('I enter a valid TOTP for device {string}', async ({ page }, deviceName: st
   await otpPage.loginWithTotp(secret);
 });
 
+// Each submission counts against the per-account TOTP throttle (secondFactor.throttle.perAccount).
+When('I enter a wrong TOTP {int} times for device {string}', async ({ page }, times: number, deviceName: string) => {
+  const secret = state.deviceNameSecretMap.get(deviceName);
+  if (!secret) throw new Error(`No enrolled TOTP secret found for device "${deviceName}"`);
+
+  const otpPage = new SecondFactorLoginPage(page);
+  for (let attempt = 0; attempt < times; attempt++) {
+    await otpPage.waitForPage();
+    await otpPage.enterOtp(generateWrongOtp(secret));
+    await page.waitForLoadState('networkidle');
+  }
+});
+
+// Exactly one submission - unlike "I enter a valid TOTP", which retries on a window-boundary rejection and would
+// hide that the throttle rejected the code.
+When('I enter a valid TOTP for device {string} once', async ({ page }, deviceName: string) => {
+  const secret = state.deviceNameSecretMap.get(deviceName);
+  if (!secret) throw new Error(`No enrolled TOTP secret found for device "${deviceName}"`);
+
+  const otpPage = new SecondFactorLoginPage(page);
+  await otpPage.waitForPage();
+  await otpPage.enterOtp(generateOtp(secret));
+  await page.waitForLoadState('networkidle');
+});
+
 When('I log in with username {string} and password {string} but cancel the WebAuthn challenge',
   async ({ page }, username: string, password: string) => {
     // Arm a one-shot cancellation before navigating, so the assertion that the
@@ -146,6 +172,10 @@ When('I authenticate with my security key', async ({ page }) => {
 
 Then('I should see the 2FA verification page', async ({ page }) => {
   await expect(page).toHaveURL(/second-factor-login/);
+});
+
+Then('I should see the 2FA error {string}', async ({ page }, message: string) => {
+  await expect(page.getByRole('alert')).toContainText(message);
 });
 
 Then('I should see the 2FA setup page', async ({ page }) => {

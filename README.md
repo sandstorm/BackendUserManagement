@@ -267,7 +267,17 @@ Sandstorm:
       issuerName: ''
       # accepted clock drift in seconds (codes from now-leeway to now+leeway); 0 = exact; values >= 30 are clamped to 29
       totpLeewayInSeconds: 0
+      # TOTP checks during login, per account (sliding window) - against brute-forcing the code once the password is known
+      throttle:
+        perAccount:
+          limit: 5
+          window: 'PT5M'
 ```
+
+Every check counts, also successful ones; once over the limit, even a valid code is rejected until the window has
+passed. Keyed by account, so a new login doesn't reset it - which also means that whoever knows the password can block
+the TOTP login of that account for the window. Passkeys are not throttled (nothing to guess). Limiter state and lock
+are shared with the [forgot password throttle](#throttle) - see there for several Neos containers.
 
 ### Passkeys (WebAuthn / FIDO2)
 
