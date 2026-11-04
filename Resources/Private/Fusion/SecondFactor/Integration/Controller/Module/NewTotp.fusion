@@ -10,7 +10,7 @@ Sandstorm.BackendUserManagement.SecondFactor.ModuleController.newTotp = Sandstor
                 <Neos.Fusion.Form:Form form.target.action="create" attributes.class="neos-second-factor__form">
                     <hr />
                     <p class="neos-second-factor__user-context">
-                        {I18n.id('module.new.user-context').package('Sandstorm.BackendUserManagement').source('SecondFactor').arguments([currentUser ? currentUser.name.fullName : accountIdentifier]).translate()}
+                        {I18n.id('module.new.user-context').package('Sandstorm.BackendUserManagement').source('SecondFactor').arguments([String.htmlSpecialChars(currentUser ? currentUser.name.fullName : accountIdentifier)]).translate()}
                     </p>
                     <div class="neos-second-factor__step">
                         <span class="neos-second-factor__step__number">1</span>

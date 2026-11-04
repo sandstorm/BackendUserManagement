@@ -16,7 +16,7 @@ Sandstorm.BackendUserManagement.SecondFactor.ModuleController.newWebAuthn = Sand
             }
             renderer = afx`
                 <p class="neos-second-factor__user-context">
-                    {I18n.id('module.new.user-context').package('Sandstorm.BackendUserManagement').source('SecondFactor').arguments([currentUser ? currentUser.name.fullName : accountIdentifier]).translate()}
+                    {I18n.id('module.new.user-context').package('Sandstorm.BackendUserManagement').source('SecondFactor').arguments([String.htmlSpecialChars(currentUser ? currentUser.name.fullName : accountIdentifier)]).translate()}
                 </p>
                 <Sandstorm.BackendUserManagement:SecondFactor.Component.SetupWebAuthnStep
                     flashMessages={flashMessages}
