@@ -34,6 +34,13 @@ Feature: User management backend module
     And I send a test mail
     Then "admin@example.com" should receive 1 mail
 
+  # Regression: "use default settings" stores the interface language as '' (not null) - must fall back to the default
+  Scenario: Send a mail to a user whose interface language is "use default settings"
+    When I log in with username "admin" and password "password"
+    And I set my interface language to "use default settings"
+    And I send a test mail
+    Then "admin@example.com" should receive 1 mail
+
   Scenario: Admin sends a password reset mail
     Given user "jane" has the validated email "jane@example.com"
     When I log in with username "admin" and password "password"

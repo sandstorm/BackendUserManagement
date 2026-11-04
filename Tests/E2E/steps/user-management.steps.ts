@@ -188,6 +188,16 @@ Then('only the users {string} should be shown', async ({ page }, usernames: stri
   expect(shown.sort()).toEqual(usernames.split(',').map((name) => name.trim()).sort());
 });
 
+// Neos core user settings module - its first option "use default settings" is saved as an empty string
+When('I set my interface language to "use default settings"', async ({ page }) => {
+  await page.goto('/neos/user/usersettings');
+  await page.locator('#interfaceLanguage').selectOption({ index: 0 });
+  await expect(page.locator('#interfaceLanguage')).toHaveValue('');
+  // the form also holds the "delete electronic address" confirm buttons (form="postHelper") - target the footer's save
+  await page.locator('form.user-edit .neos-footer [type="submit"]').click();
+  await page.waitForLoadState('networkidle');
+});
+
 When('I send a test mail', async ({ page }) => {
   await page.goto(MODULE_URL);
   await page.locator('[data-test-id="send-test-mail"]').click();

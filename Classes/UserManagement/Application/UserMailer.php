@@ -147,7 +147,7 @@ class UserMailer
             );
         }
 
-        $locale = $user?->getPreferences()->getInterfaceLanguage() ?? $this->defaultLanguage ?? 'en';
+        $locale = $user?->getPreferences()->getInterfaceLanguage() ?: $this->defaultLanguage ?: 'en';
         $subject = $this->render($mailName . '.subject', $variables, $locale);
         $html = $this->render($mailName . '.html', $variables, $locale);
         $text = $this->render($mailName . '.text', $variables, $locale);
