@@ -1,73 +1,168 @@
 # Sandstorm.BackendUserManagement
 
-Backend user management for Neos 8 and 9: forgot password, initial password via mail, email validation, a
-replacement for the core user module, second factors (TOTP, passkeys) and passwordless passkey login.
+Backend user management for Neos 8 and 9:
+
+- **Self-service passwords**: "forgot password" on the login screen, initial password via mail, email validation.
+- **User management module**: a simplified replacement for the core user module (opt-in).
+- **Second factors**: TOTP and passkeys, optionally enforced per role / provider / for everybody.
+- **Passwordless login** with a passkey (opt-in).
 
 Successor of `sandstorm/neostwofactorauthentication` (abandoned) - upgrading? See [MIGRATION.md](docs/MIGRATION.md).
 
-```
+**Contents**
+- [Getting started](#getting-started)
+- [Features](#features)
+  - [User management](#user-management)
+    - [forgot password](#forgot-password)
+    - [initial password](#initial-password)
+    - [email validation](#email-validation)
+    - [username follows the email](#username-follows-the-email)
+    - [user management module](#user-management-module)
+    - [CLI commands](#cli-commands)
+  - [Second factors](#second-factors)
+    - [TOTP](#totp-authenticator-apps)
+    - [passkeys](#passkeys-webauthn--fido2)
+    - [enforce 2FA](#enforce-2fa)
+    - [passwordless passkey login](#passwordless-passkey-login)
+- [Configuration reference](#configuration-reference)
+- [Development](#development)
+
+---
+
+## Getting started
+
+### Install
+
+```bash
 composer require sandstorm/backendusermanagement
 ./flow doctrine:migrate
 ```
 
-All settings with their defaults: [`Settings.UserManagement.yaml`](Configuration/Settings.UserManagement.yaml),
-[`Settings.2FA.yaml`](Configuration/Settings.2FA.yaml).
+Then add a **daily cron job** that deletes used and expired links:
 
-**Features**
+```bash
+./flow usermanagement:prunetokens
+```
 
-- [User management](#user-management)
-  - [Forgot password](#forgot-password)
-    - [Existing users](#existing-users)
-  - [Initial password](#initial-password)
-  - [Email validation](#email-validation)
-  - [Username follows the email](#username-follows-the-email) (opt-in)
-  - [User management module simplified UI](#user-management-module-simplified-ui) (opt-in)
-  - [CLI](#cli)
-- [Second factors](#second-factors)
-  - [TOTP (authenticator apps)](#totp-authenticator-apps)
-  - [Passkeys (WebAuthn / FIDO2)](#passkeys-webauthn--fido2)
-  - [Enforce 2FA](#enforce-2fa)
-  - [Passwordless passkey login](#passwordless-passkey-login) (opt-in)
-  - [Reload on session timeout](#reload-on-session-timeout)
+### Minimal configuration (required)
+
+User management is **on** after installing. It sends mails, so these are required - without them no mail is sent
+(the module shows a warning, "forgot password" logs an error in the security log):
+
+```yaml
+Neos:
+  SymfonyMailer:
+    mailer:
+      dsn: 'smtp://mailer:25'
+
+Sandstorm:
+  BackendUserManagement:
+    userManagement:
+      mail:
+        # Base URI of the links in mails. Omit if Neos.Flow.http.baseUri is set (usually not the case in multi-site
+        # setups). Never taken from the request for security reasons.
+        baseUri: 'https://cms.example.com/'
+        from:
+          address: 'no-reply@example.com'
+```
+
+Depending on your setup:
+
+- **behind a reverse proxy**: [trust it](#throttle), otherwise the per-IP throttle becomes a global one,
+- **several Neos containers**: [share the throttle state](#running-several-neos-containers).
+
+Existing users usually have no validated email address and therefore can't use "forgot password" yet - see
+[existing users](#existing-users).
+
+### All features
+
+On top of the minimal configuration, enable the opt-in features:
+
+```yaml
+Neos:
+  Neos:
+    modules:
+      administration:
+        submodules:
+          users:
+            enabled: false            # core user module
+          userManagement:
+            enabled: true             # user management module
+
+Sandstorm:
+  BackendUserManagement:
+    userManagement:
+      usernameIsEmail: true           # username follows the email
+    secondFactor:
+      enforceForAll: true             # enforce 2FA (or per role / provider)
+      webAuthn:
+        passwordlessLoginEnabled: true
+```
+
+### Screenshots
+
+**User management module** (`Administration > User Management`): search, create and bulk delete users; see at a
+glance whose email is validated, who uses 2FA and when they last logged in. A notice lists users who can't use
+"forgot password" yet.
+
+![User management module: list of users](docs/usermanagement_ui_index.png)
+
+**Edit a user:** name and email (with validation status), send a password reset mail or set a password, roles per
+account, remove all second factors.
+
+![User management module: edit user](docs/usermanagement_ui_edit.png)
+
+**Second factors** (`Management > Two-Factor Authentication`): users register passkeys, authenticator apps (OTP)
+and security keys as a second factor, and delete them. Shown with passwordless login enabled.
+
+![List of second factors](docs/NeosTwoFactorAuth-ListOf2ndFactors.png)
+
+**Enforced 2FA:** users without a second factor must set one up during login: a passkey, an authenticator app
+or a passkey as a second factor.
+
+![2FA setup screen on login](docs/NeosTwoFactorAuth-Enforce2FASetupScreen.png)
 
 ---
 
+## Features
+
+| Feature                                                                               | Default                 | Toggle                                                                                                                 |
+|---------------------------------------------------------------------------------------|-------------------------|------------------------------------------------------------------------------------------------------------------------|
+| [Forgot password](#forgot-password)                                                   | on                      | `Sandstorm.BackendUserManagement.userManagement.enabled`                                                               |
+| [Initial password](#initial-password)                                                 | on                      | `Sandstorm.BackendUserManagement.userManagement.enabled`                                                               |
+| [Email validation](#email-validation)                                                 | on                      | `Sandstorm.BackendUserManagement.userManagement.enabled`                                                               |
+| [Username follows the email](#username-follows-the-email)                             | off                     | `Sandstorm.BackendUserManagement.userManagement.usernameIsEmail`                                                       |
+| [User management module](#user-management-module)                                     | off                     | `Neos.Neos.modules.administration.submodules.userManagement.enabled`                                                   |
+| [CLI commands](#cli-commands)                                                         | on                      | `Sandstorm.BackendUserManagement.userManagement.enabled`                                                               |
+| [TOTP](#totp-authenticator-apps), [passkeys](#passkeys-webauthn--fido2) as 2nd factor | on (voluntary per user) | -                                                                                                                      |
+| [Enforce 2FA](#enforce-2fa)                                                           | off                     | `Sandstorm.BackendUserManagement.secondFactor.enforceForAll` / `enforceForAuthenticationProviders` / `enforceForRoles` |
+| [Passwordless passkey login](#passwordless-passkey-login)                             | off                     | `Sandstorm.BackendUserManagement.secondFactor.webAuthn.passwordlessLoginEnabled`                                       |
+
+Each feature lists its **minimal** configuration (what you have to set) and **all options** (defaults shown). The
+complete list is in the [configuration reference](#configuration-reference).
+
 ## User management
 
-**On by default**: forgot password and the CLI commands. Optional: the [user management module](#user-management-module)
-and [username follows the email](#username-follows-the-email). Mails are sent via
-[neos/symfonymailer](https://github.com/neos/symfonymailer) - configure `Neos.SymfonyMailer.mailer.dsn` and:
-
-To turn it off: `Sandstorm.BackendUserManagement.userManagement.enabled: false`.
+**On by default.** Turn it off completely (public endpoints, login screen link, CLI commands) with:
 
 ```yaml
 Sandstorm:
   BackendUserManagement:
     userManagement:
-      # only accounts of these providers are managed
-      authenticationProviders: ['Neos.Neos:Backend']
-      mail:
-        # required for multisite setups which cant set Neos.Flow.http.baseUri
-        baseUri: 'https://cms.example.com/'
-        from:
-          address: 'no-reply@example.com'   # required - without it, no mail is sent (error in the security log)
-          name: 'My CMS'
+      enabled: false
 ```
 
-> **Links in mails need a base URI:** `userManagement.mail.baseUri` or `Neos.Flow.http.baseUri` has to be set.
-> Without either, no password, confirmation or test mail is sent - the module shows a warning and "forgot password"
-> logs an error in the security log. This is for security reasons.
+**Minimal:** see [getting started](#minimal-configuration-required).
 
-Add a daily cron job for `./flow usermanagement:prunetokens`.
-
-Links in mails are single-use, stored as SHA-256 hashes, expire, are invalidated by a newer link of the same kind, and
-are only consumed on POST (mail scanners prefetch). Setting a password logs out all sessions of the user and never
-logs in, so 2FA stays in force.
+**All options** shared by the user management features:
 
 ```yaml
 Sandstorm:
   BackendUserManagement:
     userManagement:
+      enabled: true
+      # only accounts of these providers are managed
+      authenticationProviders: ['Neos.Neos:Backend']
       # ISO 8601 durations
       tokenLifetime:
         resetPassword: 'PT24H'
@@ -76,12 +171,33 @@ Sandstorm:
       passwordPolicy:
         minimumLength: 1
         maximumLength: 255
+      mail:
+        baseUri: ~                    # falls back to Neos.Flow.http.baseUri
+        from:
+          address: ~                  # required
+          name: 'Neos'
 ```
+
+How links in mails behave:
+
+- Each link works once and expires (see `tokenLifetime`).
+- Sending a new link of the same kind invalidates the old one.
+- Only a SHA-256 hash of the link is stored.
+- Opening a link does nothing yet; it is only used up when the user submits the form. Mail scanners that open links
+  automatically therefore can't burn them.
+
+Setting a password logs the user out of all sessions. It does not log them in - they log in normally afterwards,
+including their second factor.
 
 ### Forgot password
 
-"Forgot your password?" on the login screen. Users enter username or email and get a link to set a new password. The
-response is identical whether an account exists or not; several accounts sharing an email get one mail.
+**On by default.** "Forgot your password?" on the login screen. Users enter username or email and get a link to set a
+new password. The response is identical whether an account exists or not; several accounts sharing an email get one
+mail.
+
+**Minimal:** nothing beyond [getting started](#minimal-configuration-required).
+
+**All options:**
 
 ```yaml
 Sandstorm:
@@ -89,6 +205,17 @@ Sandstorm:
     userManagement:
       # only send to validated primary email addresses
       requireValidatedEmail: true
+      tokenLifetime:
+        resetPassword: 'PT24H'
+      throttle:                       # see "Throttle"
+        perIdentifier:
+          limit: 3
+          window: 'PT15M'
+        perIp:
+          enabled: true
+          limit: 50
+          window: 'PT15M'
+        lockStore: 'flock'
 ```
 
 #### Existing users
@@ -124,23 +251,8 @@ Never set `async: false` - the request would wait for the mail again.
 #### Throttle
 
 Requests are rate-limited per username/email and per IP
-([symfony/rate-limiter](https://symfony.com/doc/current/rate_limiter.html), sliding window):
-
-```yaml
-Sandstorm:
-  BackendUserManagement:
-    userManagement:
-      throttle:
-        perIdentifier:
-          limit: 3
-          window: 'PT15M'
-        perIp:
-          enabled: true
-          limit: 50
-          window: 'PT15M'
-        # symfony/lock DSN
-        lockStore: 'flock'
-```
+([symfony/rate-limiter](https://symfony.com/doc/current/rate_limiter.html), sliding window). Options: see
+[forgot password](#forgot-password).
 
 **Behind a reverse proxy**, trust it - otherwise all clients share the proxy's IP and the per-IP limit becomes
 global. Don't use `'*'`, clients could then spoof `X-Forwarded-For`:
@@ -156,8 +268,11 @@ Neos:
 
 If you can't (or a WAF already limits requests), disable the per-IP limit instead with `throttle.perIp.enabled: false`.
 
-**Several Neos containers**: limiter state and lock default to the local file system, so each container counts on
-its own. Share both, e.g. via Redis (needs the PHP `redis` extension; `redis://` lock store needs `symfony/cache`):
+#### Running several Neos containers
+
+Limiter state and lock default to the local file system, so each container counts on its own. This also applies to
+the [TOTP throttle](#totp-authenticator-apps). Share both, e.g. via Redis (needs the PHP `redis` extension;
+`redis://` lock store needs `symfony/cache`):
 
 ```yaml
 # Configuration/Caches.yaml
@@ -180,21 +295,50 @@ Sandstorm:
 
 ### Initial password
 
-Administrators create users without a password; the user gets a link to set one (lifetime:
-`tokenLifetime.initialPassword`). Setting a password via a link also validates the email address.
+**On by default.** Administrators create users without a password; the user gets a link to set one. Setting a
+password via a link also validates the email address. Triggered from the
+[user management module](#user-management-module) or `./flow usermanagement:sendinitialpassword`.
 
-### Email validation
+**Minimal:** nothing beyond [getting started](#minimal-configuration-required).
 
-The user's primary email (Neos.Party `ElectronicAddress`, `approved` = validated). Changing it resets validation and
-sends a confirmation mail - unless the admin marks it as validated in the edit form (lifetime: `tokenLifetime.verifyEmail`); admins can also mark it as validated.
-
-### Username follows the email
+**All options:**
 
 ```yaml
 Sandstorm:
   BackendUserManagement:
     userManagement:
-      usernameIsEmail: true   # default: false
+      tokenLifetime:
+        initialPassword: 'P7D'
+```
+
+### Email validation
+
+**On by default.** Each user has one primary email address, which is either validated or not. Changing it resets the
+validation and sends a confirmation mail to the new address. Administrators can skip this by marking the address as
+validated in the edit form, or mark it as validated later. (Technically: the Neos.Party `ElectronicAddress`;
+`approved` means validated.)
+
+**Minimal:** nothing beyond [getting started](#minimal-configuration-required).
+
+**All options:**
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
+    userManagement:
+      tokenLifetime:
+        verifyEmail: 'P7D'
+```
+
+### Username follows the email
+
+**Off by default.** Enable:
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
+    userManagement:
+      usernameIsEmail: true
 ```
 
 New accounts are named after the email (username field hidden). On email change, accounts named after the old address
@@ -207,15 +351,13 @@ To rename such accounts to the (validated) email explicitly: "Use email address 
 yourself), or `./flow usermanagement:useemailasusername [--username <username>] [--dry-run]` for all users at once.
 Same effects as above: logged out, mail with the new username, workspace migrated; taken names are skipped.
 
-### User management module simplified UI
+### User management module
 
-`Administration > User Management`, replacing the core user module with a simplified UI: search, bulk delete, create, edit (name, email,
-roles per account, active, password), send reset / initial password / confirmation mails, reset second factors,
-impersonate, send a test mail to yourself.
+**Off by default.** `Administration > User Management`, replacing the core user module with a simplified UI: search,
+bulk delete, create, edit (name, email, roles per account, active, password), send reset / initial password /
+confirmation mails, reset second factors, impersonate, send a test mail to yourself.
 
-![User management module: list of users](docs/usermanagement_ui_index.png)
-
-![User management module: edit user](docs/usermanagement_ui_edit.png)
+Enable it and disable the core module (requires `userManagement.enabled`):
 
 ```yaml
 Neos:
@@ -232,10 +374,11 @@ Neos:
 Permissions mirror the core module: `Neos.Neos:Administrator` manages everybody, `Neos.Neos:UserManager` only users
 with the same or a subset of their roles. Nobody can delete, deactivate or lock out themselves.
 
-### CLI
+### CLI commands
 
-The mail commands require `userManagement.enabled` and `userManagement.mail.baseUri` (or `Neos.Flow.http.baseUri`). Commands taking a `<username>` also
-accept `--authentication-provider` (default: first of `authenticationProviders`).
+**On by default** (requires `userManagement.enabled`). The mail commands also require `userManagement.mail.baseUri`
+(or `Neos.Flow.http.baseUri`). Commands taking a `<username>` also accept `--authentication-provider` (default: first
+of `authenticationProviders`).
 
 | Command                                                     |                                                  |
 |-------------------------------------------------------------|--------------------------------------------------|
@@ -250,14 +393,17 @@ accept `--authentication-provider` (default: first of `authenticationProviders`)
 
 ## Second factors
 
-Users register any number of second factors in `Management > Two-Factor Authentication` and pick one at login.
-Administrators can delete factors of other users (e.g. after a lockout).
-
-![List of second factors](docs/NeosTwoFactorAuth-ListOf2ndFactors.png)
+**On by default, voluntary per user.** Users register any number of second factors in
+`Management > Two-Factor Authentication` and pick one at login. Administrators can delete factors of other users
+(e.g. after a lockout). To make it mandatory, see [enforce 2FA](#enforce-2fa).
 
 ### TOTP (authenticator apps)
 
-Tested with Google Authenticator, Microsoft Authenticator, Authy and 1Password.
+**On by default.** Tested with Google Authenticator, Microsoft Authenticator, Authy and 1Password.
+
+**Minimal:** nothing.
+
+**All options:**
 
 ```yaml
 Sandstorm:
@@ -277,12 +423,17 @@ Sandstorm:
 Every check counts, also successful ones; once over the limit, even a valid code is rejected until the window has
 passed. Keyed by account, so a new login doesn't reset it - which also means that whoever knows the password can block
 the TOTP login of that account for the window. Passkeys are not throttled (nothing to guess). Limiter state and lock
-are shared with the [forgot password throttle](#throttle) - see there for several Neos containers.
+are shared with the [forgot password throttle](#throttle) - see
+[several Neos containers](#running-several-neos-containers).
 
 ### Passkeys (WebAuthn / FIDO2)
 
-Platform authenticators (Touch ID, Windows Hello) and security keys (e.g. YubiKey). Requires HTTPS; an IP address
-cannot be the relying-party id.
+**On by default.** Platform authenticators (Touch ID, Windows Hello) and security keys (e.g. YubiKey). Requires
+HTTPS; an IP address cannot be the relying-party id.
+
+**Minimal:** nothing in production. For local development over plain HTTP, see below.
+
+**All options:**
 
 ```yaml
 Sandstorm:
@@ -298,6 +449,8 @@ Sandstorm:
         userVerification: 'discouraged'
         # browser ceremony timeout in ms
         timeout: 60000
+        # plain-HTTP hostnames accepted by the server - development only
+        securedRelyingPartyIds: []
 ```
 
 | Authenticator                    | 2nd factor, `discouraged` | 2nd factor, `required` | Passwordless |
@@ -326,52 +479,182 @@ Sandstorm:
 
 ### Enforce 2FA
 
-Users without a second factor have to set one up before they can log in.
+**Off by default.** Users without a second factor have to set one up before they can log in.
+
+**Minimal** - for everybody:
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
+    secondFactor:
+      enforceForAll: true
+```
+
+Or only for some users:
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
+    secondFactor:
+      enforceForRoles: ['Neos.Neos:Administrator']
+```
+
+**All options:**
 
 ```yaml
 Sandstorm:
   BackendUserManagement:
     secondFactor:
       # for all users
-      enforceForAll: true
+      enforceForAll: false
       # or only for these authentication providers ...
-      enforceForAuthenticationProviders: ['Neos.Neos:Backend']
+      enforceForAuthenticationProviders: []   # e.g. ['Neos.Neos:Backend']
       # ... and/or roles
-      enforceForRoles: ['Neos.Neos:Administrator']
+      enforceForRoles: []                     # e.g. ['Neos.Neos:Administrator']
 ```
-
-![2FA setup screen on login](docs/NeosTwoFactorAuth-Enforce2FASetupScreen.png)
 
 ### Passwordless passkey login
 
-A "Sign in with a passkey" button on the login screen - no username, no password. A user-verified passkey counts as
-both factors. [Demo video](https://github.com/user-attachments/assets/29907363-ccda-4417-b501-e36921869e47)
+**Off by default.** A "Sign in with a passkey" button on the login screen - no username, no password. A user-verified
+passkey counts as both factors. [Demo video](https://github.com/user-attachments/assets/29907363-ccda-4417-b501-e36921869e47)
+
+Enable (enforced server-side):
 
 ```yaml
 Sandstorm:
   BackendUserManagement:
     secondFactor:
       webAuthn:
-        passwordlessLoginEnabled: true   # default: false, enforced server-side
+        passwordlessLoginEnabled: true
 ```
+
+Other options: see [passkeys](#passkeys-webauthn--fido2) (`userVerification` does not apply - passwordless always
+requires user verification).
 
 - Only **discoverable** credentials with user verification work. Credentials registered while this was off, and
   U2F-only keys, stay 2nd-factor only (badge "Passkey as 2nd factor" vs. "Passkey" in the module).
 - While enabled, new registrations can be a passkey or a touch-only security key as 2nd factor.
 - Users without a passkey see a "Register a passkey" banner in the module.
 
-### Reload on session timeout
-
-When the backend session expires, the Neos UI reloads the page instead of showing the core relogin dialog (which
-cannot handle the second factor). No configuration.
-
 ---
 
-## Fragile on Neos upgrades
+## Configuration reference
 
-- The 2FA login screen is a copy of the `Neos.Neos` login screen.
-- The passkey button is injected into the core login screen via `Configuration/Views.yaml` and a `@process` on
-  `Neos.Neos:Component.Login.Form`.
+All settings with their defaults. Source: [`Settings.UserManagement.yaml`](Configuration/Settings.UserManagement.yaml),
+[`Settings.2FA.yaml`](Configuration/Settings.2FA.yaml), [`Caches.yaml`](Configuration/Caches.yaml).
+`# REQUIRED` marks the minimal configuration.
+
+```yaml
+Sandstorm:
+  BackendUserManagement:
+    userManagement:
+      # Forgot password, set password, confirm email, login screen link, CLI commands.
+      # The module has its own flag (Neos.Neos.modules.administration.submodules.userManagement.enabled).
+      enabled: true
+      # Only accounts of these providers are managed / can reset their password.
+      authenticationProviders: ['Neos.Neos:Backend']
+      # Forgot password only mails validated primary email addresses.
+      requireValidatedEmail: true
+      # Username = email on create; renamed on (validated) email change.
+      usernameIsEmail: false
+      # ISO 8601 durations
+      tokenLifetime:
+        resetPassword: 'PT24H'
+        initialPassword: 'P7D'
+        verifyEmail: 'P7D'
+      # Forgot-password throttle (symfony/rate-limiter, sliding window).
+      # State in the Flow cache Sandstorm_BackendUserManagement_Throttle.
+      throttle:
+        perIdentifier:
+          limit: 3
+          window: 'PT15M'
+        # Behind a reverse proxy: set Neos.Flow.http.trustedProxies or disable.
+        perIp:
+          enabled: true
+          limit: 50
+          window: 'PT15M'
+        # symfony/lock DSN, e.g. 'flock' or 'redis://redis:6379' (also used by the TOTP throttle)
+        lockStore: 'flock'
+      # Mirrors the core user module.
+      passwordPolicy:
+        minimumLength: 1
+        maximumLength: 255
+      mail:
+        # REQUIRED unless Neos.Flow.http.baseUri is set. Base URI of the links in mails.
+        baseUri: ~
+        from:
+          # REQUIRED
+          address: ~
+          name: 'Neos'
+
+    secondFactor:
+      # Enforce 2FA for all users / these authentication providers / these roles.
+      enforceForAll: false
+      enforceForAuthenticationProviders: []
+      enforceForRoles: []
+      # TOTP label in the authenticator app; empty = site name.
+      issuerName: ''
+      # Accepted TOTP clock drift in seconds; 0 = exact; values >= 30 are clamped to 29.
+      totpLeewayInSeconds: 0
+      # TOTP checks during login, per account (sliding window). Every check counts, also successful ones.
+      throttle:
+        perAccount:
+          limit: 5
+          window: 'PT5M'
+      webAuthn:
+        # Shown in the browser's WebAuthn prompt.
+        relyingPartyName: 'Neos Backend'
+        # null = request hostname.
+        relyingPartyId: null
+        # 'required' | 'preferred' | 'discouraged' - 2nd factor only; passwordless always requires user verification.
+        userVerification: 'discouraged'
+        # Browser ceremony timeout in ms.
+        timeout: 60000
+        # Usernameless, passwordless login with a discoverable passkey.
+        passwordlessLoginEnabled: false
+        # Plain-HTTP hostnames accepted by webauthn-lib. Leave empty in production!
+        securedRelyingPartyIds: []
+      # Stylesheets of the 2FA login / setup screens (not loaded on the core login screen).
+      loginForm:
+        stylesheets:
+          'Sandstorm.BackendUserManagement:SecondFactorSharedStyles': 'resource://Sandstorm.BackendUserManagement/Public/Styles/SecondFactorShared.css'
+          'Sandstorm.BackendUserManagement:SecondFactorStyles': 'resource://Sandstorm.BackendUserManagement/Public/Styles/SecondFactorLogin.css'
+
+Neos:
+  SymfonyMailer:
+    mailer:
+      # REQUIRED (neos/symfonymailer)
+      dsn: ~
+  Neos:
+    modules:
+      administration:
+        submodules:
+          # Core user module - disable when enabling ours.
+          users:
+            enabled: true
+          # User management module (requires userManagement.enabled).
+          userManagement:
+            enabled: false
+
+Flowpack:
+  JobQueue:
+    Common:
+      queues:
+        # Forgot-password mails. Async FakeQueue = one background ./flow process per mail.
+        # Real queue: override className and run ./flow job:work. Never set async: false.
+        'Sandstorm.BackendUserManagement:UserManagementMail':
+          className: 'Flowpack\JobQueue\Common\Queue\FakeQueue'
+          options:
+            async: true
+```
+
+```yaml
+# Caches.yaml - throttle state; use a shared backend (e.g. RedisBackend) with several Neos containers.
+Sandstorm_BackendUserManagement_Throttle:
+  backend: Neos\Cache\Backend\FileBackend
+```
+
+---
 
 ## Development
 
